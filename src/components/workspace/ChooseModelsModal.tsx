@@ -53,7 +53,7 @@ export default function ChooseModelsModal({ isOpen, onClose, selectedModels, onC
       if (prev.includes(modelName)) {
         return prev.filter(m => m !== modelName);
       } else {
-        if (prev.length >= 6) return prev;
+        if (prev.length >= 5) return prev;
         return [...prev, modelName];
       }
     });
@@ -79,7 +79,7 @@ export default function ChooseModelsModal({ isOpen, onClose, selectedModels, onC
                   </div>
                   <div>
                     <h3 className="text-[15px] md:text-[17px] font-semibold text-gray-900 dark:text-white leading-tight">Compare Models</h3>
-                    <p className="text-[11px] md:text-[13px] text-gray-500 dark:text-gray-400 font-medium mt-0 md:mt-0.5">Select up to 6 connected models to compare side-by-side.</p>
+                    <p className="text-[11px] md:text-[13px] text-gray-500 dark:text-gray-400 font-medium mt-0 md:mt-0.5">Select up to 5 connected models to compare side-by-side.</p>
                   </div>
                 </div>
                 <button 

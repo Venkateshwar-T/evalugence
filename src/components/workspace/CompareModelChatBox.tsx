@@ -157,7 +157,7 @@ const CompareModelChatBox = ({ modelId, modelName, providerId, isActive, globalM
       startTimeRef.current = Date.now();
       ttftRef.current = 0;
       sendMessage(
-        { role: 'user', content: lastMsg.content, experimental_attachments: (lastMsg as any).experimental_attachments } as any,
+        { role: 'user', content: lastMsg.content } as any,
         { 
           data: { providerId: providerId, modelName: modelName, apiKey, config },
           headers: {

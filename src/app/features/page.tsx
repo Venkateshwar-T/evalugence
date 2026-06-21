@@ -17,13 +17,13 @@ export default function FeaturesPage() {
     },
     {
       icon: BarChart3,
-      title: "Granular Metrics",
-      description: "Stop guessing performance. We automatically calculate Time-to-First-Token (TTFT), tokens generated per second, total latency, and provide a cost estimation for every single prompt you run."
+      title: "Metrics & Metadata Insights",
+      description: "Stop guessing performance. We automatically calculate Time-to-First-Token (TTFT) and throughput, plus give you instant access to Model Metadata like context windows and max tokens."
     },
     {
       icon: SlidersHorizontal,
-      title: "Advanced Configuration",
-      description: "Fine-tune model behavior with precision. Globally adjust the System Prompt, Temperature, Top-P, and Top-K parameters, or override them on a per-model basis during comparison."
+      title: "Global System Prompting",
+      description: "Shape the personality and constraints of all models simultaneously. Set a powerful Global System Prompt to ensure perfectly identical baselines when testing multiple LLMs."
     },
     {
       icon: History,

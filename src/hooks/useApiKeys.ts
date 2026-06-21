@@ -14,7 +14,7 @@ export function useApiKeys() {
     if (stored) {
       try {
         setProviders(JSON.parse(stored));
-      } catch (e) {
+      } catch {
         console.error("Failed to parse providers from local storage");
       }
     } else {

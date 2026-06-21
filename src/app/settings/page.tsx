@@ -132,6 +132,7 @@ export default function SettingsPage() {
   const handleStartupUrlChange = (url: string) => {
     setStartupUrl(url);
     localStorage.setItem('evalugence_startup_url', url);
+    document.cookie = `evalugence_startup_url=${url}; path=/; max-age=31536000`;
   };
 
   const handleToggleThemeNav = () => {
@@ -219,7 +220,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className={`flex-1 flex flex-col min-w-0 transition-opacity duration-300 ${(!mounted || !isLoaded) ? 'opacity-0' : 'opacity-100'}`}>
           
           {/* GENERAL TAB */}
           {activeTab === 'general' && (

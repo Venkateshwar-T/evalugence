@@ -24,16 +24,7 @@ export default function GlobalLogic() {
     }
   }, []);
 
-  // Run on pathname change
-  useEffect(() => {
-    // 2. Redirect on root ('/') if startup URL is set
-    if (pathname === '/') {
-      const startupUrl = localStorage.getItem('evalugence_startup_url');
-      if (startupUrl === '/lab' || startupUrl === '/dashboard') {
-        router.replace(startupUrl);
-      }
-    }
-  }, [pathname, router]);
+  // Client-side redirection has been moved to src/middleware.ts using cookies
 
   return null;
 }

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { X, Globe } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { useModelConfig } from '@/hooks/useModelConfig';
 import { createPortal } from 'react-dom';

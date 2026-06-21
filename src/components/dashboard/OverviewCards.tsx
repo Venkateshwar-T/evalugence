@@ -79,11 +79,13 @@ export default function OverviewCards() {
           </div>
         </div>
         <div className="mt-1 md:mt-2 flex flex-col md:gap-1">
-          <div className="flex items-center gap-1.5 md:gap-2">
+          <div className="flex items-center gap-2">
             {fastestProvider && (
-              <img src={fastestProvider.logo} alt="Logo" className="w-4 h-4 md:w-5 md:h-5 object-contain drop-shadow-sm" />
+              <div className="w-6 h-6 md:w-7 md:h-7 rounded-full border border-gray-200 bg-white flex items-center justify-center shadow-sm overflow-hidden shrink-0">
+                <img src={fastestProvider.logo} alt="Logo" className="w-4 h-4 md:w-4 md:h-4 object-contain" />
+              </div>
             )}
-            <span className="text-xl md:text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight line-clamp-1 leading-none mt-0.5 md:mt-0">
+            <span className="text-xl md:text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight line-clamp-1 leading-tight pb-0.5">
               {fastestModelName}
             </span>
           </div>

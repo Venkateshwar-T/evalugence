@@ -33,7 +33,9 @@ export default function ModelsPage() {
     }
   }, []);
   
-  const { providers: savedProviders, connectedProviderIds, saveProvider, removeProvider } = useApiKeys();
+  const { providers: savedProviders, connectedProviderIds, saveProvider, removeProvider, isLoaded } = useApiKeys();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const [expandedProviders, setExpandedProviders] = useState<string[]>([]);
 
   const toggleExpanded = (e: React.MouseEvent, id: string) => {
@@ -99,7 +101,7 @@ export default function ModelsPage() {
         <div className="absolute bottom-[10%] right-[-5%] w-[60vw] max-w-[600px] h-[600px] bg-purple-500/10 blur-[150px] rounded-full" />
       </div>
       
-      <div className="flex flex-col w-full max-w-5xl mx-auto flex-1 relative z-10 px-4 md:px-6 lg:px-8 pt-[80px] md:pt-24 pb-8 md:pb-12">
+      <div className={`flex flex-col w-full max-w-5xl mx-auto flex-1 relative z-10 px-4 md:px-6 lg:px-8 pt-[80px] md:pt-24 pb-8 md:pb-12 transition-opacity duration-300 ${(!mounted || !isLoaded) ? 'opacity-0' : 'opacity-100'}`}>
         
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-12 shrink-0 gap-4 md:gap-6">
@@ -401,8 +403,8 @@ export default function ModelsPage() {
               >
                 <div className="flex items-center justify-between px-4 py-3 md:px-6 md:py-5 border-b border-gray-100 dark:border-gray-800/60 bg-gray-50/50 dark:bg-gray-900/20 shrink-0">
                   <div className="flex items-center gap-2 md:gap-3">
-                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 dark:from-blue-500/20 dark:to-cyan-500/20 flex items-center justify-center border border-blue-500/20 dark:border-blue-500/30">
-                      <img src={activeProvider.logo} alt={activeProvider.name} className="w-4 h-4 md:w-5 md:h-5 object-contain" />
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gray-50 dark:bg-white border border-gray-100 dark:border-gray-800 flex items-center justify-center p-1.5 md:p-2 shadow-inner shrink-0">
+                      <img src={activeProvider.logo} alt={activeProvider.name} className="w-full h-full object-contain" />
                     </div>
                     <div>
                       <h3 className="text-[15px] md:text-[17px] font-semibold text-gray-900 dark:text-white leading-tight">
@@ -477,7 +479,7 @@ export default function ModelsPage() {
                       <div className="mt-1 text-[11px] md:text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
                         Your API key is securely stored locally in your browser. It is never sent to our servers.<br/>
                         {deleteKeysOnRefresh ? (
-                          <span className="text-orange-500 dark:text-orange-400 font-medium mt-1 inline-block">Because "Delete API key on refresh" is ON, this key will be deleted when you refresh or close the site.</span>
+                          <span className="text-orange-500 dark:text-orange-400 font-medium mt-1 inline-block">Because "Volatile API Keys" setting is ON, this key will be deleted when you refresh or close the site.</span>
                         ) : (
                           <span className="text-green-600 dark:text-green-500 font-medium mt-1 inline-block">Your key will be securely saved across sessions.</span>
                         )}

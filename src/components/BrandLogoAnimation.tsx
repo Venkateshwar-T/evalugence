@@ -8,7 +8,7 @@ import { motion, AnimatePresence, useInView } from 'framer-motion';
 type Phase = 0 | 1 | 2 | 3;
 
 const TRANSITION_DURATION = 1.5; // Duration for the collapse animation
-const HOLD_DURATION = 1500;      // How long to hold each phase before auto-advancing
+const HOLD_DURATION = 1000;      // How long to hold each phase before auto-advancing
 
 export default function BrandLogoAnimation() {
   const [phase, setPhase] = useState<1 | 2 | 3>(1);
@@ -31,11 +31,11 @@ export default function BrandLogoAnimation() {
   const isCollapsed = phase === 3;
 
   return (
-    <div ref={ref} className="flex min-h-[80vh] items-center justify-center px-4 select-none">
+    <div ref={ref} className="flex min-h-[40vh] items-center justify-center px-4 select-none">
       <div className="flex flex-col items-end">
         <div className="relative overflow-hidden flex items-baseline justify-center">
           <div 
-            className="text-4xl font-semibold tracking-widest text-black dark:text-white md:text-6xl lg:text-7xl flex items-baseline -mr-[0.1em]"
+            className="text-lg sm:text-3xl md:text-5xl lg:text-7xl font-semibold tracking-widest text-black dark:text-white flex items-baseline -mr-[0.1em]"
             style={{ fontFamily: 'inherit' }}
           >
             {/* EVALU part */}
@@ -90,7 +90,7 @@ export default function BrandLogoAnimation() {
         </div>
 
         {/* Second line for "WITH" */}
-        <div className="h-10 md:h-12 mt-2 flex items-center justify-center text-3xl md:text-4xl font-bold tracking-widest text-gray-400 dark:text-gray-500 w-full relative">
+        <div className="h-4 sm:h-8 md:h-12 mt-0 sm:mt-2 flex items-center justify-center text-xs sm:text-2xl md:text-4xl font-bold tracking-widest text-gray-400 dark:text-gray-500 w-full relative">
           <AnimatePresence mode="wait">
             {!isCollapsed && (
               <motion.span

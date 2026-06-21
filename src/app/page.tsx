@@ -1,5 +1,4 @@
 import BrandLogoAnimation from "@/components/BrandLogoAnimation";
-import BrandLogoAnimationMobile from "@/components/BrandLogoAnimationMobile";
 import HeroSection from "@/components/landing/HeroSection";
 import SupportedModels from "@/components/landing/SupportedModels";
 import TrustModelSection from "@/components/landing/TrustModelSection";
@@ -25,13 +24,8 @@ export default function Home() {
       <YourPlaygroundSection />
       
       {/* Brand Logo Animation just before footer */}
-      <div className="w-full flex justify-center items-center py-32 border-t border-gray-200 dark:border-gray-800 relative z-10 bg-white/50 dark:bg-black/50 backdrop-blur-sm overflow-hidden">
-        <div className="hidden md:block w-full">
-          <BrandLogoAnimation />
-        </div>
-        <div className="block md:hidden w-full">
-          <BrandLogoAnimationMobile />
-        </div>
+      <div className="w-full flex justify-center items-center py-20 md:py-32 border-t border-gray-200 dark:border-gray-800 relative z-10 bg-white/50 dark:bg-black/50 backdrop-blur-sm overflow-hidden">
+        <BrandLogoAnimation />
       </div>
 
       <Footer />

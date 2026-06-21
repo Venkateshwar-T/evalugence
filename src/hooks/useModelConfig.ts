@@ -23,7 +23,7 @@ export function useModelConfig(modelName: string | 'global') {
           parsed.systemPrompt = DEFAULT_CONFIG.systemPrompt;
         }
         setConfig({ ...DEFAULT_CONFIG, ...parsed });
-      } catch (e) {
+      } catch {
         setConfig(DEFAULT_CONFIG);
       }
     } else {
@@ -37,7 +37,7 @@ export function useModelConfig(modelName: string | 'global') {
               parsedGlobal.systemPrompt = DEFAULT_CONFIG.systemPrompt;
             }
             setConfig({ ...DEFAULT_CONFIG, ...parsedGlobal });
-          } catch (e) {
+          } catch {
             setConfig(DEFAULT_CONFIG);
           }
         } else {

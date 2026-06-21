@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import MetricsSideMenu from "@/components/MetricsSideMenu";
+import MetricsSideMenu from "@/components/workspace/MetricsSideMenu";
 import ChatInterface from "@/components/workspace/ChatInterface";
 import ChatHeader from "@/components/workspace/ChatHeader";
 import CompareInterface from "@/components/workspace/CompareInterface";
@@ -375,7 +375,7 @@ function LabContent() {
     }, 2000);
   }, [compareMessages, mode, selectedCompareModels]);
 
-  const handleSend = (msg: string, attachments?: { name: string, type: string, base64: string }[]) => {
+  const handleSend = (msg: string) => {
     if (mode === 'test') {
       if (testModel.name === 'Select Model' || !testModel.id) {
         setWiggle(true);
@@ -396,17 +396,10 @@ function LabContent() {
         return;
       }
       
-      const experimental_attachments = attachments?.map(a => ({
-        name: a.name,
-        contentType: a.type,
-        url: a.base64
-      }));
-
       appendTestMessage(
         { 
           role: 'user', 
-          content: msg,
-          experimental_attachments
+          content: msg
         } as any,
         ({ 
           data: { providerId: testModel.id, modelName: testModel.name, apiKey: currentApiKey, config: testModelConfig },
@@ -425,20 +418,13 @@ function LabContent() {
         return;
       }
       
-      const experimental_attachments = attachments?.map(a => ({
-        name: a.name,
-        contentType: a.type,
-        url: a.base64
-      }));
-
       // Force the chat view to open (expand) whenever a new prompt is sent
       setIsCompareMinimized(false);
 
       setCompareMessages(prev => [...prev, { 
         id: Date.now().toString(), 
         role: 'user', 
-        content: msg,
-        experimental_attachments
+        content: msg
       } as any]);
     }
   };
@@ -451,7 +437,7 @@ function LabContent() {
     );
   };
 
-  if (!isMounted) {
+  if (!isMounted || !isProvidersLoaded) {
     return <div className="flex w-full h-[100dvh] items-center justify-center bg-gray-50/30 dark:bg-black/30" />;
   }
 
@@ -481,17 +467,21 @@ function LabContent() {
 
             <div className="flex flex-row sm:items-center gap-1 bg-white dark:bg-[#0a0a0a] p-1.5 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm w-full sm:w-fit overflow-x-auto hide-scrollbar shrink-0">
               <button 
-                onClick={() => {
-                  setMode('test');
-                }}
-                className={`flex-1 sm:flex-none px-4 md:px-6 py-2 rounded-lg text-xs md:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${mode === 'test' ? 'bg-black dark:bg-white text-white dark:text-black shadow-md' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-900'}`}
+                onClick={() => setMode('test')}
+                className={`relative flex-1 sm:flex-none px-4 md:px-6 py-2 rounded-lg text-xs md:text-sm font-bold transition-all cursor-pointer whitespace-nowrap z-10 ${mode === 'test' ? 'text-white dark:text-black' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-900'}`}
               >
+                {mode === 'test' && (
+                  <motion.div layoutId="labTab" className="absolute inset-0 bg-black dark:bg-white rounded-lg shadow-md -z-10" transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }} />
+                )}
                 Test Model
               </button>
               <button 
                 onClick={() => setMode('compare')}
-                className={`flex-1 sm:flex-none px-4 md:px-6 py-2 rounded-lg text-xs md:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${mode === 'compare' ? 'bg-black dark:bg-white text-white dark:text-black shadow-md' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-900'}`}
+                className={`relative flex-1 sm:flex-none px-4 md:px-6 py-2 rounded-lg text-xs md:text-sm font-bold transition-all cursor-pointer whitespace-nowrap z-10 ${mode === 'compare' ? 'text-white dark:text-black' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-900'}`}
               >
+                {mode === 'compare' && (
+                  <motion.div layoutId="labTab" className="absolute inset-0 bg-black dark:bg-white rounded-lg shadow-md -z-10" transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }} />
+                )}
                 Compare Models
               </button>
             </div>
@@ -499,9 +489,9 @@ function LabContent() {
         )}
 
         {/* Dynamic Content Area */}
-        <div className="flex-1 w-full flex flex-col">
+        <div className="flex-1 w-full grid grid-cols-1 grid-rows-1 relative min-h-0">
           {/* Test Mode */}
-          <div className={`w-full flex-1 flex-col ${mode === 'test' ? 'flex' : 'hidden'}`}>
+          <div className={`col-start-1 row-start-1 w-full h-full flex flex-col transition-all duration-300 ${mode === 'test' ? 'opacity-100 z-10 pointer-events-auto relative' : 'opacity-0 -z-10 pointer-events-none absolute inset-0'}`}>
             {testMessages.length === 0 ? (
               <div className="w-full flex-1 flex flex-col items-center justify-center gap-3 md:gap-6 -translate-y-16 md:-translate-y-20 relative">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] max-w-[800px] h-[300px] bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-[100px] rounded-[100%] pointer-events-none -z-10" />
@@ -547,7 +537,7 @@ function LabContent() {
           </div>
 
           {/* Compare Mode */}
-          <div className={`w-full flex-col ${mode === 'compare' ? 'flex' : 'hidden'} ${compareMessages.length > 0 ? 'absolute inset-0' : 'flex-1'}`}>
+          <div className={`col-start-1 row-start-1 w-full h-full flex flex-col transition-all duration-300 ${mode === 'compare' ? 'opacity-100 z-10 pointer-events-auto relative' : 'opacity-0 -z-10 pointer-events-none absolute inset-0'}`}>
             {compareMessages.length === 0 ? (
               <div className="w-full flex-1 flex flex-col items-center justify-center gap-3 md:gap-6 -translate-y-16 md:-translate-y-20 relative">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] max-w-[800px] h-[300px] bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-[100px] rounded-[100%] pointer-events-none -z-10" />

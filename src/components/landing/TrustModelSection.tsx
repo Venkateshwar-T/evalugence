@@ -37,7 +37,7 @@ export default function TrustModelSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 md:gap-y-10">
           {points.map((point, i) => (
             <div key={i} className="flex gap-4 group">
               <div className="mt-1">

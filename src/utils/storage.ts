@@ -1,4 +1,4 @@
-import { get, set, del, keys } from 'idb-keyval';
+import { get, set, del } from 'idb-keyval';
 import { estimateTokens } from './metrics';
 
 export interface SessionData {
@@ -33,7 +33,7 @@ const getLocalStorage = (key: string, defaultValue: any) => {
   try {
     const item = window.localStorage.getItem(key);
     return item ? JSON.parse(item) : defaultValue;
-  } catch (e) {
+  } catch {
     return defaultValue;
   }
 };

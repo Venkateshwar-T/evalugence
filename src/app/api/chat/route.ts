@@ -81,21 +81,6 @@ export async function POST(req: Request) {
           text = msg.parts.map((p: any) => p.text || p.content || '').join('');
         }
 
-        const attachments = msg.experimental_attachments || [];
-        if (attachments.length > 0) {
-          const contentParts: any[] = [];
-          if (text) contentParts.push({ type: 'text', text });
-          
-          attachments.forEach((att: any) => {
-            if (att.contentType?.startsWith('image/')) {
-              contentParts.push({ type: 'image', image: att.url });
-            } else {
-              contentParts.push({ type: 'file', mimeType: att.contentType, data: att.url });
-            }
-          });
-          return { role: msg.role, content: contentParts };
-        }
-
         return { role: msg.role, content: text };
       });
 
@@ -105,7 +90,7 @@ export async function POST(req: Request) {
     let systemPrompt = config.systemPrompt || payload.system || dataObj.system || '';
 
     // Implicitly inform the model of its exact name behind the scenes
-    const modelIdentityString = `[System Note: You are currently instantiated as the model named "${modelName}". Always identify yourself exactly as this when asked.]`;
+    const modelIdentityString = `[System Note: Your internal model identifier is '${modelName}'.]`;
     systemPrompt = systemPrompt ? `${modelIdentityString}\n\n${systemPrompt}` : modelIdentityString;
 
     const streamOptions: any = {

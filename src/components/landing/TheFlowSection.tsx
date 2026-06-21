@@ -11,14 +11,14 @@ export default function TheFlowSection() {
 
   const multipleSteps = [
     { id: 1, title: 'Connect API', icon: Key, description: 'Paste your API keys for the providers you want to test.' },
-    { id: 2, title: 'Input Prompt', icon: MessageSquare, description: 'Write your prompt and configure settings.' },
+    { id: 2, title: 'Input Prompt', icon: MessageSquare, description: 'Write your prompt and set a Global System Prompt.' },
     { id: 3, title: 'Compare', icon: SplitSquareHorizontal, description: 'Run the prompt across all models simultaneously.' },
-    { id: 4, title: 'View Metrics', icon: BarChart3, description: 'Analyze performance, tokens, and quality side by side.' },
+    { id: 4, title: 'View Metrics', icon: BarChart3, description: 'Analyze performance, metadata, and quality side by side.' },
   ];
 
   const singleSteps = [
     { id: 1, title: 'Connect API', icon: Key, description: 'Paste the API key for your chosen model provider.' },
-    { id: 2, title: 'Input Prompt', icon: MessageSquare, description: 'Craft your prompt and set model parameters.' },
+    { id: 2, title: 'Input Prompt', icon: MessageSquare, description: 'Craft your prompt and explore Model Metadata.' },
     { id: 3, title: 'View Metrics', icon: BarChart3, description: 'Get detailed latency, token usage, and speed data.' },
   ];
 
@@ -36,10 +36,10 @@ export default function TheFlowSection() {
 
         {/* Tabs */}
         <div className="flex justify-center mb-10">
-          <div className="flex items-center p-1.5 bg-gray-200/50 dark:bg-gray-800/50 rounded-full border border-gray-200 dark:border-gray-800 relative">
+          <div className="flex items-center px-1 py-0.5 md:p-1.5 bg-gray-200/50 dark:bg-gray-800/50 rounded-full border border-gray-200 dark:border-gray-800 relative">
             <button
               onClick={() => setActiveTab('multiple')}
-              className={`relative px-6 py-2.5 text-sm font-bold rounded-full transition-colors ${
+              className={`relative px-4 md:px-6 py-2 md:py-2.5 text-sm font-bold rounded-full transition-colors ${
                 activeTab === 'multiple' ? 'text-gray-900 dark:text-white' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -93,8 +93,8 @@ export default function TheFlowSection() {
                       <Icon className="w-6 h-6 text-gray-900 dark:text-white" />
                       
                       {/* Mobile connecting line */}
-                      {index < steps.length - 1 && (
-                        <div className="block md:hidden absolute top-full left-1/2 -translate-x-1/2 h-8 w-0.5 bg-gray-200 dark:bg-gray-800" />
+                      {index < steps.length && (
+                        <div className="block md:hidden absolute top-full left-1/2 -translate-x-1/2 h-7 w-0.5 bg-gray-200 dark:bg-gray-800" />
                       )}
                     </div>
                     

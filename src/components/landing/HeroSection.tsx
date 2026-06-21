@@ -6,15 +6,15 @@ import { ArrowRight, BarChart3 } from 'lucide-react';
 
 export default function HeroSection() {
   const mockData = [
-    { name: 'Gemini 3.1 Pro', value: 98, color: 'bg-blue-500' },
-    { name: 'GPT-5.2', value: 95, color: 'bg-green-500' },
-    { name: 'Mistral Large 3', value: 94, color: 'bg-red-500' },
-    { name: 'Claude Opus 4.7', value: 92, color: 'bg-orange-500' },
-    { name: 'Deepseek V4', value: 88, color: 'bg-purple-500' },
+    { name: 'GPT-5.2', value: 98, color: 'bg-blue-500' },
+    { name: 'Claude Opus 4.7', value: 95, color: 'bg-orange-500' },
+    { name: 'Gemini 3.1 Pro', value: 94, color: 'bg-green-500' },
+    { name: 'Deepseek V4', value: 92, color: 'bg-purple-500' },
+    { name: 'Mistral Large 3', value: 88, color: 'bg-red-500' },
   ];
 
   return (
-    <section className="relative w-full pt-28 pb-24 md:pt-40 md:pb-32 overflow-hidden">
+    <section className="relative w-full pt-24 pb-24 md:pt-40 md:pb-32 overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-8 items-center">
           
@@ -69,7 +69,7 @@ export default function HeroSection() {
             transition={{ duration: 0.7, delay: 0.3 }}
             className="w-full relative"
           >
-            <div className="relative w-full rounded-[2rem] border border-gray-200 dark:border-gray-800 bg-white/60 dark:bg-black/60 backdrop-blur-xl p-6 md:p-8">
+            <div className="relative w-full rounded-[1rem] md:rounded-[2rem] border border-gray-200 dark:border-gray-800 bg-white/60 dark:bg-black/60 backdrop-blur-xl p-6 md:p-8">
               
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
@@ -77,8 +77,8 @@ export default function HeroSection() {
                     <BarChart3 className="w-5 h-5 text-blue-500" />
                   </div>
                   <div className="flex flex-col">
-                    <h3 className="text-base font-bold text-gray-900 dark:text-white leading-none mb-1">Reasoning Benchmark</h3>
-                    <span className="text-xs font-medium text-gray-500">Complex Logic & Math (Score / 100)</span>
+                    <h3 className="text-base font-bold text-gray-900 dark:text-white leading-none mb-1">Model Benchmark</h3>
+                    <span className="text-xs font-medium text-gray-500">Compare performance to find your ideal AI model</span>
                   </div>
                 </div>
               </div>

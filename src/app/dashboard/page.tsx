@@ -9,6 +9,7 @@ import OverviewCards from '@/components/dashboard/OverviewCards';
 import SessionHistory from '@/components/dashboard/SessionHistory';
 import { useApiKeys } from '@/hooks/useApiKeys';
 import providersData from '@/data/providers.json';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Lazy load the Recharts components so they don't block initial render
 const PerformanceChart = dynamic(() => import('@/components/dashboard/PerformanceChart'), {
@@ -28,10 +29,12 @@ const LatencyChart = dynamic(() => import('@/components/dashboard/LatencyChart')
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<'profile' | 'metrics'>('profile');
-  const { providers: savedProviders } = useApiKeys();
+  const { providers: savedProviders, isLoaded } = useApiKeys();
   const [enableHistory, setEnableHistory] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (typeof window !== 'undefined') {
       setEnableHistory(localStorage.getItem('evalugence_enable_history') === 'true');
     }
@@ -60,7 +63,7 @@ export default function DashboardPage() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] max-w-[600px] h-[600px] bg-blue-500/10 blur-[150px] rounded-full" />
       </div>
 
-      <div className="w-full max-w-7xl mx-auto flex flex-col gap-6 md:gap-8 h-full overflow-y-auto custom-scrollbar pb-8 md:pb-12 relative pt-[80px] md:pt-24 px-4 md:px-6">
+      <div className={`w-full max-w-7xl mx-auto flex flex-col gap-6 md:gap-8 h-full overflow-y-auto custom-scrollbar pb-8 md:pb-12 relative pt-[80px] md:pt-24 px-4 md:px-6 transition-opacity duration-300 ${(!mounted || !isLoaded) ? 'opacity-0' : 'opacity-100'}`}>
       {/* Header and Tab Switcher */}
       <div className="flex flex-col gap-4 md:gap-6">
         <div>
@@ -73,20 +76,34 @@ export default function DashboardPage() {
         <div className="flex flex-row sm:items-center gap-1 bg-white dark:bg-[#0a0a0a] p-1.5 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm w-full sm:w-fit overflow-x-auto hide-scrollbar">
           <button 
             onClick={() => setActiveTab('profile')}
-            className={`flex-1 sm:flex-none px-4 md:px-6 py-2 rounded-lg text-xs md:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${activeTab === 'profile' ? 'bg-black dark:bg-white text-white dark:text-black shadow-md' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-900'}`}
+            className={`relative flex-1 sm:flex-none px-4 md:px-6 py-2 rounded-lg text-xs md:text-sm font-bold transition-all cursor-pointer whitespace-nowrap z-10 ${activeTab === 'profile' ? 'text-white dark:text-black' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-900'}`}
           >
+            {activeTab === 'profile' && (
+              <motion.div layoutId="dashboardTab" className="absolute inset-0 bg-black dark:bg-white rounded-lg shadow-md -z-10" transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }} />
+            )}
             Profile
           </button>
           <button 
             onClick={() => setActiveTab('metrics')}
-            className={`flex-1 sm:flex-none px-4 md:px-6 py-2 rounded-lg text-xs md:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${activeTab === 'metrics' ? 'bg-black dark:bg-white text-white dark:text-black shadow-md' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-900'}`}
+            className={`relative flex-1 sm:flex-none px-4 md:px-6 py-2 rounded-lg text-xs md:text-sm font-bold transition-all cursor-pointer whitespace-nowrap z-10 ${activeTab === 'metrics' ? 'text-white dark:text-black' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-900'}`}
           >
+            {activeTab === 'metrics' && (
+              <motion.div layoutId="dashboardTab" className="absolute inset-0 bg-black dark:bg-white rounded-lg shadow-md -z-10" transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }} />
+            )}
             Evaluation Metrics
           </button>
         </div>
       </div>
 
       {/* Tab Content */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+        >
       {activeTab === 'profile' ? (
         <div className="flex flex-col gap-6 md:gap-8">
           {/* Connected Providers */}
@@ -174,6 +191,8 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+        </motion.div>
+      </AnimatePresence>
     </div>
     </>
   );

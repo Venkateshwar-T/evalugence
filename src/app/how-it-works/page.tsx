@@ -9,17 +9,17 @@ export default function HowItWorks() {
     {
       icon: Key,
       title: "1. Connect Your API Keys Locally",
-      description: "Paste your API keys for OpenAI, Anthropic, Google, Groq, or others. We encrypt them locally and store them purely in your browser's local session. We never write your keys to a server or database."
+      description: "Paste your API keys for OpenAI, Anthropic, Google, Groq, or others. We store them purely in your browser's local session. We never write your keys to a server or database."
     },
     {
       icon: SplitSquareHorizontal,
-      title: "2. Select Models to Compare",
-      description: "Choose up to 6 models to run side-by-side. You can select models across different providers to get a comprehensive comparison of their strengths, weaknesses, and behaviors."
+      title: "2. Select Testing Mode",
+      description: "Run the test on a single model or choose up to 5 models to run side-by-side. You can select models across different providers to get a comprehensive comparison of their strengths, weaknesses, and behaviors."
     },
     {
       icon: Layers,
-      title: "3. Configure Your Prompt",
-      description: "Set the global system prompt to dictate the models' personas. Adjust technical parameters like Temperature, Top-P, and Top-K globally or per-model to fine-tune the outputs."
+      title: "3. System Prompts & Metadata",
+      description: "Define a Global System Prompt to shape the personality of all models at once. You can also view native Model Metadata (like max context lengths) to understand their exact capabilities before testing."
     },
     {
       icon: Zap,
@@ -89,7 +89,7 @@ export default function HowItWorks() {
             <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">Everything stays within your control. We don't act as a middleman.</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -113,18 +113,7 @@ export default function HowItWorks() {
               <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">The application fetches responses directly from the AI providers. Your prompts never route through our backend.</p>
             </motion.div>
             
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="p-5 md:p-6 bg-gray-50/50 dark:bg-gray-900/30 rounded-xl md:rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
-            >
-              <ShieldCheck className="w-6 h-6 md:w-8 md:h-8 text-green-500 mb-3 md:mb-4" />
-              <h4 className="font-bold text-gray-900 dark:text-white mb-2 text-base md:text-lg">Open Visibility</h4>
-              <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">You can inspect your browser's network tab at any time to verify exactly where your data is being sent.</p>
-            </motion.div>
-          </div>
+           </div>
         </div>
 
       </div>
