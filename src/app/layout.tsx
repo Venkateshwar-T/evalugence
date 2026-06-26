@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Evalugence",
-  description: "Evalugence - Your platform",
+  title: "Evalugence | AI Model Benchmarking",
+  description: "A Bring-Your-Own-Key (BYOK) AI evaluation workspace. Test, compare, and benchmark bleeding-edge Large Language Models side-by-side in real time.",
 };
 
 export default function RootLayout({
