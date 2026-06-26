@@ -108,7 +108,7 @@ export default function ChooseModelsModal({ isOpen, onClose, selectedModels, onC
               {/* Selected Models Stack */}
               <div className="flex items-center flex-wrap gap-1.5 md:gap-2 pt-1 md:pt-2">
                 <span className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest mr-1 md:mr-2">
-                  Selected ({localSelected.length}/6):
+                  Selected ({localSelected.length}/5):
                 </span>
                   {localSelected.map(modelName => {
                     const modelData = connectedModels.find(m => m.name === modelName);
