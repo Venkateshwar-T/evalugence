@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Zap, PieChart } from 'lucide-react';
-import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import OverviewCards from '@/components/dashboard/OverviewCards';

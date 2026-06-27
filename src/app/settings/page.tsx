@@ -1,70 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Info, Settings2, Sliders, Shield, Monitor, Moon, Sun, Trash2, Power, Database, ChevronRight } from 'lucide-react';
+import { Settings2, Sliders, Shield, Monitor, Moon, Sun, Trash2, Power, Database, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { useModelConfig, ModelConfig, DEFAULT_CONFIG } from '@/hooks/useModelConfig';
 import { useTheme } from 'next-themes';
 import ModelMetadataViewer from '@/components/workspace/ModelMetadataViewer';
-
-interface ConfigItemProps {
-  label: string;
-  tooltip: string;
-  position?: 'top' | 'bottom';
-  align?: 'left' | 'right';
-  children: React.ReactNode;
-}
-
-const ConfigItem = ({ label, tooltip, position = 'bottom', align = 'left', children }: ConfigItemProps) => (
-  <div className="flex flex-col gap-2 relative z-10 hover:z-50">
-    {label && (
-      <div className="flex items-center gap-1.5">
-        <label className="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest leading-none mt-0.5">
-          {label}
-        </label>
-        <div className="hidden md:flex group relative items-center justify-center cursor-help">
-          <Info className="w-3.5 h-3.5 text-gray-300 dark:text-gray-600 group-hover:text-gray-900 dark:group-hover:text-white transition-colors" />
-          
-          {/* Tooltip */}
-          <div className={`absolute ${align === 'left' ? 'left-0' : 'right-0'} w-64 p-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-medium rounded-xl shadow-2xl opacity-0 pointer-events-none group-hover:opacity-100 transition-all z-[99999] normal-case tracking-normal group-hover:translate-y-0 ${position === 'bottom' ? 'top-full mt-2 -translate-y-1' : 'bottom-full mb-2 translate-y-1'}`}>
-            <div className={`absolute ${align === 'left' ? 'left-4' : 'right-4'} border-4 border-transparent ${position === 'bottom' ? 'bottom-full border-b-gray-900 dark:border-b-white' : 'top-full border-t-gray-900 dark:border-t-white'}`}></div>
-            {tooltip}
-          </div>
-        </div>
-      </div>
-    )}
-    {children}
-  </div>
-);
-
-const InfoTooltip = ({ text, position = 'top', align = 'left' }: { text: string, position?: 'top'|'bottom', align?: 'left'|'right' }) => (
-  <div className="hidden md:flex group relative items-center justify-center cursor-help">
-    <Info className="w-3.5 h-3.5 text-gray-300 dark:text-gray-600 group-hover:text-gray-900 dark:group-hover:text-white transition-colors" />
-    <div className={`absolute ${align === 'left' ? 'left-0' : 'right-0'} w-64 p-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-medium rounded-xl shadow-2xl opacity-0 pointer-events-none group-hover:opacity-100 transition-all z-[99999] normal-case tracking-normal group-hover:translate-y-0 ${position === 'bottom' ? 'top-full mt-2 -translate-y-1' : 'bottom-full mb-2 translate-y-1'}`}>
-      <div className={`absolute ${align === 'left' ? 'left-4' : 'right-4'} border-4 border-transparent ${position === 'bottom' ? 'bottom-full border-b-gray-900 dark:border-b-white' : 'top-full border-t-gray-900 dark:border-t-white'}`}></div>
-      {text}
-    </div>
-  </div>
-);
-
-
-const SliderInput = ({ min, max, step, value, onChange }: { min: string, max: string, step: string, value: string, onChange: (val: string) => void }) => {
-  return (
-    <div className="flex items-center gap-4">
-      <input 
-        type="range" min={min} max={max} step={step} value={value} 
-        onChange={(e) => onChange(e.target.value)} 
-        className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-800 rounded-lg appearance-none cursor-pointer accent-black dark:accent-white" 
-      />
-      <input 
-        type="number" min={min} max={max} step={step} value={value} 
-        onChange={(e) => onChange(e.target.value)} 
-        className="w-16 bg-transparent border-b border-gray-200 dark:border-gray-800 p-1 text-sm font-medium text-center focus:outline-none focus:border-black dark:focus:border-white text-gray-900 dark:text-white transition-colors" 
-      />
-    </div>
-  );
-};
 
 type Tab = 'general' | 'models' | 'privacy';
 
@@ -73,7 +15,7 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   
   // Model Config State
-  const { config, saveConfig, resetToDefault, isLoaded } = useModelConfig('global');
+  const { config, saveConfig, isLoaded } = useModelConfig('global');
   const [localConfig, setLocalConfig] = useState<ModelConfig>(DEFAULT_CONFIG);
 
   // General Config State
@@ -103,12 +45,11 @@ export default function SettingsPage() {
     try {
       const metaCache = JSON.parse(localStorage.getItem('evalugence_model_metadata') || '{}');
       setCachedModels(Object.keys(metaCache));
-    } catch (e) {
+    } catch (_) {
       setCachedModels([]);
     }
   }, [config, isLoaded]);
 
-  const effortLevels = ['Default', 'Low', 'Medium', 'High'];
 
   const updateField = (key: keyof ModelConfig, value: string) => {
     setLocalConfig(prev => ({ ...prev, [key]: value }));

@@ -57,7 +57,7 @@ export const getGlobalMetrics = (): GlobalMetrics => {
   });
 };
 
-export const updateGlobalMetrics = (session: SessionData) => {
+const updateGlobalMetrics = (session: SessionData) => {
   const metrics = getGlobalMetrics();
   metrics.totalSessionsRun += 1;
 

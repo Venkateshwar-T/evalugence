@@ -10,11 +10,13 @@ import { saveSession, getSession } from "@/utils/storage";
 import GlobalPromptInput from "@/components/workspace/GlobalPromptInput";
 import ChooseModelsModal from "@/components/workspace/ChooseModelsModal";
 import SelectModelModal from "@/components/workspace/SelectModelModal";
+import SystemPromptModal from "@/components/workspace/SystemPromptModal";
 import { useSearchParams, useRouter } from "next/navigation";
+import { Globe } from "lucide-react";
 import providersData from "@/data/providers.json";
 import { useChat } from "@ai-sdk/react";
 import { useApiKeys } from "@/hooks/useApiKeys";
-import { estimateTokens, formatTime } from "@/utils/metrics";
+import { estimateTokens } from "@/utils/metrics";
 import { useModelConfig } from "@/hooks/useModelConfig";
 
 import { Suspense } from "react";
@@ -28,6 +30,7 @@ function LabContent() {
   const [compareMessages, setCompareMessages] = useState<any[]>([]);
   const [isChooseModelsOpen, setIsChooseModelsOpen] = useState(false);
   const [isSelectModelOpen, setIsSelectModelOpen] = useState(false);
+  const [isGlobalConfigOpen, setIsGlobalConfigOpen] = useState(false);
   const [testModel, setTestModel] = useState({ name: 'Select Model', logo: '', id: '' });
   const [selectedCompareModels, setSelectedCompareModels] = useState<string[]>([]);
   const [wiggle, setWiggle] = useState(false);
@@ -375,7 +378,24 @@ function LabContent() {
     }, 2000);
   }, [compareMessages, mode, selectedCompareModels]);
 
-  const handleSend = (msg: string) => {
+  const handleSend = async (msg: string, attachments?: File[]) => {
+    let experimental_attachments: Array<{ url: string, contentType: string, name: string }> | undefined;
+    
+    if (attachments && attachments.length > 0) {
+      experimental_attachments = await Promise.all(attachments.map(file => {
+        return new Promise<{ url: string, contentType: string, name: string }>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve({
+            url: reader.result as string,
+            contentType: file.type,
+            name: file.name
+          });
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }));
+    }
+
     if (mode === 'test') {
       if (testModel.name === 'Select Model' || !testModel.id) {
         setWiggle(true);
@@ -399,7 +419,8 @@ function LabContent() {
       appendTestMessage(
         { 
           role: 'user', 
-          content: msg
+          content: msg,
+          ...(experimental_attachments ? { experimental_attachments } : {})
         } as any,
         ({ 
           data: { providerId: testModel.id, modelName: testModel.name, apiKey: currentApiKey, config: testModelConfig },
@@ -499,18 +520,20 @@ function LabContent() {
                   <ChatHeader 
                     isStandalone 
                     modelName={testModel.name} 
+                    providerId={testModel.id}
                     providerLogo={testModel.logo} 
                     onOpenSelectModal={() => setIsSelectModelOpen(true)} 
                     wiggle={wiggle}
                   />
                 </div>
-                <GlobalPromptInput isFixed={false} onSend={handleSend} placeholder="Type a prompt..." />
+                <GlobalPromptInput isFixed={false} onSend={handleSend} placeholder="Type a prompt..." providerId={testModel.id} modelName={testModel.name} />
               </div>
             ) : (
               <div className="w-full max-w-6xl mx-auto flex-1 flex flex-col gap-6">
                 <div className="sticky top-[72px] md:top-20 w-fit mx-auto z-[60] shrink-0 transition-all">
                   <ChatHeader 
                     modelName={testModel.name}
+                    providerId={testModel.id}
                     providerLogo={testModel.logo}
                     onOpenSelectModal={() => setIsSelectModelOpen(true)}
                     onNewChat={() => {
@@ -568,6 +591,16 @@ function LabContent() {
                       {selectedCompareModels.length > 0 ? `${selectedCompareModels.length} Models` : 'Choose Models'}
                     </span>
                   </button>
+
+                  <div className="relative group/btn flex items-center justify-center mr-1">
+                    <button 
+                      onClick={() => setIsGlobalConfigOpen(true)}
+                      className="w-7 h-7 md:w-9 md:h-9 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer"
+                    >
+                      <Globe className="w-4 h-4 md:w-[18px] md:h-[18px]" />
+                    </button>
+                    <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-[11px] font-bold tracking-wide rounded-lg opacity-0 group-hover/btn:opacity-100 invisible group-hover/btn:visible transition-all whitespace-nowrap shadow-xl z-50 pointer-events-none">System Prompt</div>
+                  </div>
                 </div>
                 <GlobalPromptInput 
                   isFixed={false} 
@@ -649,6 +682,8 @@ function LabContent() {
           placeholder="Type a prompt..." 
           onSend={handleSend}
           isGenerating={mode === 'test' ? isLoading : isCompareGenerating}
+          providerId={mode === 'test' ? testModel.id : undefined}
+          modelName={mode === 'test' ? testModel.name : undefined}
           onStop={() => {
             if (mode === 'test') {
               testStop();
@@ -708,6 +743,11 @@ function LabContent() {
           }
         }}
         selectedModelName={testModel.name}
+      />
+      <SystemPromptModal 
+        isOpen={isGlobalConfigOpen} 
+        onClose={() => setIsGlobalConfigOpen(false)} 
+        modelName="global" 
       />
     </main>
   );

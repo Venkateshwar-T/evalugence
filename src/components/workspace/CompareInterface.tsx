@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Maximize2, Minimize2, Plus, X, SlidersHorizontal, BarChart2, ChevronDown, ChevronRight, Copy, Check, Power, Database, Globe } from 'lucide-react';
+import { Minimize2, Plus, X, Power, Database, Globe } from 'lucide-react';
 import CompareModelChatBox from './CompareModelChatBox';
 import SystemPromptModal from './SystemPromptModal';
 import CompareMetricsSideMenu from './CompareMetricsSideMenu';
@@ -11,8 +11,8 @@ import SelectModelModal from './SelectModelModal';
 import ThemeToggle from '../ThemeToggle';
 import providersData from '@/data/providers.json';
 import { useApiKeys } from '@/hooks/useApiKeys';
-import { estimateTokens } from '@/utils/metrics';
 import { createPortal } from 'react-dom';
+import { formatModelName } from '@/utils/formatters';
 
 
 
@@ -308,7 +308,7 @@ export default function CompareInterface({
                         {activeLogo && <img src={activeLogo} alt={model.name} className="w-3.5 h-3.5 object-contain" />}
                       </div>
                       <span className="font-extrabold text-[13px] md:text-[15px] text-gray-900 dark:text-white tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                        {model.name}
+                        {formatModelName(model.name)}
                       </span>
                     </button>
                   </div>

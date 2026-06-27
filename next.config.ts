@@ -2,8 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  // @ts-ignore - Some Next.js type definitions might not have this yet
-  allowedDevOrigins: ['192.168.29.109'],
   async headers() {
     return [
       {

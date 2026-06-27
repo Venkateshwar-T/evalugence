@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Database, BarChart2, Globe } from 'lucide-react';
+import { useState } from 'react';
+import { Database, Settings2 } from 'lucide-react';
+import ModelConfigModal from './ModelConfigModal';
 import ModelMetadataViewer from './ModelMetadataViewer';
-import SystemPromptModal from './SystemPromptModal';
+import { formatModelName } from '@/utils/formatters';
 interface ChatHeaderProps {
   modelName?: string;
+  providerId?: string;
   providerLogo?: string;
   isStandalone?: boolean;
   onOpenSelectModal?: () => void;
@@ -16,6 +17,7 @@ interface ChatHeaderProps {
 
 export default function ChatHeader({ 
   modelName = 'Select Model', 
+  providerId = '',
   providerLogo,
   isStandalone = false,
   onOpenSelectModal,
@@ -23,7 +25,7 @@ export default function ChatHeader({
   wiggle = false
 }: ChatHeaderProps) {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
-  const [isSystemPromptOpen, setIsSystemPromptOpen] = useState(false);
+  const [isMetadataOpen, setIsMetadataOpen] = useState(false);
 
   return (
     <>
@@ -42,7 +44,7 @@ export default function ChatHeader({
                 />
               </div>
             )}
-            <span className="font-bold text-[12px] md:text-[14px] tracking-wide">{modelName}</span>
+            <span className="font-bold text-[12px] md:text-[14px] tracking-wide">{modelName === 'Select Model' ? modelName : formatModelName(modelName)}</span>
           </button>
         </div>
 
@@ -61,12 +63,12 @@ export default function ChatHeader({
 
           <div className="relative group/btn flex items-center justify-center">
             <button 
-              onClick={() => setIsSystemPromptOpen(true)}
+              onClick={() => setIsMetadataOpen(true)}
               className="w-7 h-7 md:w-9 md:h-9 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer"
             >
-              <Globe className="w-3.5 h-3.5 md:w-[16px] md:h-[16px]" />
+              <Database className="w-3.5 h-3.5 md:w-[16px] md:h-[16px]" />
             </button>
-            <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-[11px] font-bold tracking-wide rounded-lg opacity-0 group-hover/btn:opacity-100 invisible group-hover/btn:visible transition-all whitespace-nowrap shadow-xl z-50 pointer-events-none">System Prompt</div>
+            <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-[11px] font-bold tracking-wide rounded-lg opacity-0 group-hover/btn:opacity-100 invisible group-hover/btn:visible transition-all whitespace-nowrap shadow-xl z-50 pointer-events-none">Raw Metadata</div>
           </div>
 
           <div className="relative group/btn flex items-center justify-center">
@@ -74,15 +76,15 @@ export default function ChatHeader({
               onClick={() => setIsConfigOpen(true)}
               className="w-7 h-7 md:w-9 md:h-9 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer"
             >
-              <Database className="w-3.5 h-3.5 md:w-[16px] md:h-[16px]" />
+              <Settings2 className="w-3.5 h-3.5 md:w-[16px] md:h-[16px]" />
             </button>
-            <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-[11px] font-bold tracking-wide rounded-lg opacity-0 group-hover/btn:opacity-100 invisible group-hover/btn:visible transition-all whitespace-nowrap shadow-xl z-50 pointer-events-none">Metadata</div>
+            <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-[11px] font-bold tracking-wide rounded-lg opacity-0 group-hover/btn:opacity-100 invisible group-hover/btn:visible transition-all whitespace-nowrap shadow-xl z-50 pointer-events-none">Configuration</div>
           </div>
         </div>
       </div>
       
-      <ModelMetadataViewer isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} modelName={modelName} />
-      <SystemPromptModal isOpen={isSystemPromptOpen} onClose={() => setIsSystemPromptOpen(false)} modelName="global" />
+      <ModelConfigModal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} modelName={modelName} providerId={providerId} />
+      <ModelMetadataViewer isOpen={isMetadataOpen} onClose={() => setIsMetadataOpen(false)} modelName={modelName} />
     </>
   );
 }

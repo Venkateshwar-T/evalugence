@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Copy, Check, RefreshCw, Zap, Clock, ChevronDown, Loader2, Info } from 'lucide-react';
+import { Copy, Check, ChevronDown, Loader2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { formatTime, formatSpeed, estimateTokens } from '@/utils/metrics';
 import ReactMarkdown from 'react-markdown';
@@ -57,9 +57,20 @@ const ChatInterface = ({
 
   const renderMessageContent = (msg: Message, isThinking: boolean = false) => {
     const msgAny = msg as any;
+    
+    // Logging for debugging reasoning blocks
+    if (msg.role === 'assistant') {
+      try {
+        console.log(`[ChatInterface] JSON: ${JSON.stringify({ id: msg.id, parts: msgAny.parts })}`);
+      } catch (e) {
+        // ignore
+      }
+    }
+
     if (msgAny.parts && Array.isArray(msgAny.parts)) {
       return msgAny.parts.map((p: any, i: number) => {
-        if (p.type === 'reasoning' && p.text) {
+        const reasoningText = p.reasoning || (p.type === 'reasoning' ? p.text : null);
+        if (p.type === 'reasoning' && reasoningText) {
           return (
             <details key={i} className="mb-2 w-full group/details">
               <summary className="cursor-pointer text-[13px] font-medium text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors list-none flex items-center gap-1.5 w-fit select-none">
@@ -76,7 +87,7 @@ const ChatInterface = ({
                 )}
               </summary>
               <div className="pt-2 pb-4 text-gray-500 dark:text-gray-400 whitespace-pre-wrap font-mono text-[12px] leading-relaxed pl-2 border-l-2 border-gray-200 dark:border-gray-800 ml-1 mt-1">
-                {p.text}
+                {reasoningText}
               </div>
             </details>
           );
@@ -134,10 +145,10 @@ const ChatInterface = ({
   };
 
   return (
-    <div className="flex flex-col w-full border border-gray-200 dark:border-gray-800 rounded-2xl md:rounded-3xl bg-white dark:bg-[#0a0a0a] shadow-sm">
+    <div className="flex flex-col w-[calc(100%+2rem)] -mx-4 md:mx-0 md:w-full border-0 md:border md:border-gray-200 dark:md:border-gray-800 rounded-none md:rounded-3xl bg-transparent md:bg-white dark:md:bg-[#0a0a0a] shadow-none md:shadow-sm">
       
       {/* Messages Area - Native Scroll */}
-      <div className="flex-1 p-4 md:p-8 pb-8 relative">
+      <div className="flex-1 px-4 py-4 md:p-8 pb-8 relative">
         
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center h-[50vh] opacity-50">
@@ -160,8 +171,25 @@ const ChatInterface = ({
                 ) : msg.role === 'user' ? (
                   <div className="self-end flex flex-col items-end gap-1.5 w-full max-w-[80%] md:max-w-[70%] group">
                     {/* User Message Bubble */}
-                    <div className="bg-black dark:bg-white text-white dark:text-black px-4 md:px-6 py-3 md:py-4 rounded-2xl md:rounded-3xl rounded-tr-sm md:rounded-tr-sm text-[14px] md:text-[15px] shadow-sm leading-relaxed w-fit whitespace-pre-wrap">
-                      {renderMessageContent(msg)}
+                    <div className="bg-black dark:bg-white text-white dark:text-black px-4 md:px-6 py-3 md:py-4 rounded-2xl md:rounded-3xl rounded-tr-sm md:rounded-tr-sm text-[14px] md:text-[15px] shadow-sm leading-relaxed w-fit max-w-full flex flex-col gap-3">
+                      {(msg as any).experimental_attachments?.length > 0 && (
+                        <div className="flex flex-wrap gap-2 w-full max-w-full overflow-hidden">
+                          {(msg as any).experimental_attachments.map((att: any, idx: number) => (
+                            <div key={idx} className="w-20 h-20 md:w-28 md:h-28 rounded-xl overflow-hidden bg-white/10 border border-white/20 flex shrink-0">
+                              {att.contentType?.startsWith('image/') ? (
+                                <img src={att.url} alt={att.name || 'attachment'} className="w-full h-full object-cover" />
+                              ) : att.contentType?.startsWith('video/') ? (
+                                <video src={att.url} className="w-full h-full object-cover" controls />
+                              ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center text-xs text-white/70">
+                                  <span className="truncate w-full font-medium">{att.name || 'File'}</span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div className="whitespace-pre-wrap">{renderMessageContent(msg)}</div>
                     </div>
                     {/* Action Buttons & Metrics */}
                     <div className="flex items-center justify-end w-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity gap-1.5 md:gap-3 mt-0 mr-2">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ArrowUp, Mic, Square } from 'lucide-react';
+import { ArrowUp, Mic, Square, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 
@@ -20,9 +20,11 @@ const APP_FACTS = [
 interface GlobalPromptInputProps {
   placeholder?: string;
   isFixed?: boolean;
-  onSend?: (msg: string) => void;
+  onSend?: (msg: string, attachments?: File[]) => void;
   isGenerating?: boolean;
   onStop?: () => void;
+  providerId?: string;
+  modelName?: string;
 }
 
 
@@ -31,10 +33,16 @@ export default function GlobalPromptInput({
   isFixed = true,
   onSend,
   isGenerating = false,
-  onStop
+  onStop,
+  providerId,
+  modelName
 }: GlobalPromptInputProps) {
   const [message, setMessage] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [supportsImage, setSupportsImage] = useState(false);
+  const [supportsVideo, setSupportsVideo] = useState(false);
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [enableHistory, setEnableHistory] = useState(false);
   const [randomFact, setRandomFact] = useState('');
@@ -42,59 +50,66 @@ export default function GlobalPromptInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
 
+  // Parse Metadata for input modalities
+  useEffect(() => {
+    let img = false;
+    let vid = false;
+
+    if (providerId === 'google') {
+      img = true;
+      vid = true; // Gemini 1.5 natively supports video
+    } else if (providerId === 'openai') {
+      if (modelName && (modelName.includes('gpt-4o') || modelName.includes('gpt-4-turbo'))) {
+        img = true;
+      }
+    } else if (providerId === 'openrouter' && modelName && typeof window !== 'undefined') {
+      try {
+        const metaCache = JSON.parse(localStorage.getItem('evalugence_model_metadata') || '{}');
+        const meta = metaCache[modelName];
+        if (meta?.architecture?.modality) {
+          const modalityStr = String(meta.architecture.modality).toLowerCase();
+          if (modalityStr.includes('image')) img = true;
+          if (modalityStr.includes('video')) vid = true;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    setSupportsImage(img);
+    setSupportsVideo(vid);
+    // Clear attachments if switching to a model that doesn't support them
+    if (!img && !vid) {
+      setAttachments([]);
+    }
+  }, [providerId, modelName]);
+
   // Initialize Speech Recognition and Footer Data
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Set history status
-      const historyPref = localStorage.getItem('evalugence_enable_history');
-      if (historyPref !== null) {
-        setEnableHistory(historyPref === 'true');
-      }
-      // Pick random fact
-      setRandomFact(APP_FACTS[Math.floor(Math.random() * APP_FACTS.length)]);
-
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = true;
         recognitionRef.current.interimResults = true;
-
+        
         recognitionRef.current.onresult = (event: any) => {
-          let currentTranscript = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              setMessage(prev => prev + transcript + ' ');
-            } else {
-              currentTranscript += transcript;
-            }
+          let transcript = '';
+          for (let i = 0; i < event.results.length; i++) {
+            transcript += event.results[i][0].transcript;
           }
+          setMessage(transcript);
         };
 
         recognitionRef.current.onerror = (event: any) => {
-          console.error("Speech recognition error", event.error);
-          setIsListening(false);
-          if (event.error === 'network') {
-            alert("Speech recognition network error. This usually happens if your browser (like Brave or Firefox) doesn't support the Google Speech backend, or if you are running on an insecure network context.");
-          } else if (event.error === 'not-allowed') {
-            alert("Microphone access was denied. Please allow microphone permissions in your browser settings.");
-          }
-        };
-
-        recognitionRef.current.onend = () => {
+          console.error("Speech recognition error:", event.error);
           setIsListening(false);
         };
       }
+
+      setEnableHistory(localStorage.getItem('evalugence_enable_history') === 'true');
+      setRandomFact(APP_FACTS[Math.floor(Math.random() * APP_FACTS.length)]);
     }
-
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-    };
   }, []);
 
   const toggleListen = () => {
@@ -103,6 +118,7 @@ export default function GlobalPromptInput({
       setIsListening(false);
     } else {
       if (recognitionRef.current) {
+        setMessage('');
         recognitionRef.current.start();
         setIsListening(true);
       } else {
@@ -127,14 +143,20 @@ export default function GlobalPromptInput({
 
 
   const handleSend = async () => {
-    if (!message.trim()) return;
+    if (!message.trim() && attachments.length === 0) return;
     
     if (isListening) toggleListen(); // Stop mic if sending
 
-    if (onSend) onSend(message);
+    if (onSend) onSend(message, attachments);
     
     // Reset state
     setMessage('');
+    setAttachments([]);
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
   const containerClass = isFixed 
@@ -155,14 +177,61 @@ export default function GlobalPromptInput({
       <div className="max-w-4xl mx-auto w-full pointer-events-auto">
         <div className={`flex flex-col bg-white/95 dark:bg-[#111111]/95 backdrop-blur-xl border border-gray-200/80 dark:border-gray-800/80 rounded-2xl md:rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] p-1 md:p-2.5 relative transition-all focus-within:ring-4 focus-within:ring-black/5 dark:focus-within:ring-white/5 focus-within:border-black/20 dark:focus-within:border-white/20 ${isListening ? 'ring-2 ring-red-500/50 border-red-500/50' : ''}`}>
           
+          {attachments.length > 0 && (
+            <div className="flex flex-wrap gap-2 px-3 pt-3 pb-1 w-full">
+              {attachments.map((file, idx) => (
+                <div key={idx} className="relative group rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 w-16 h-16 md:w-20 md:h-20 flex items-center justify-center">
+                  {file.type.startsWith('image/') ? (
+                    <img src={URL.createObjectURL(file)} alt="attachment" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{file.type.split('/')[1] || 'FILE'}</div>
+                  )}
+                  <button 
+                    onClick={() => removeAttachment(idx)}
+                    className="absolute top-1 right-1 w-5 h-5 bg-black/50 hover:bg-red-500/80 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          
           <div className="flex items-end w-full">
+            {/* Left side attachment button (if supported) */}
+            {(supportsImage || supportsVideo) && (
+              <div className="flex items-center justify-center pl-1 shrink-0">
+                <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  className="hidden" 
+                  multiple
+                  accept={supportsVideo && supportsImage ? "image/*,video/*" : supportsImage ? "image/*" : supportsVideo ? "video/*" : "*"} 
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      const files = Array.from(e.target.files);
+                      setAttachments(prev => [...prev, ...files].slice(0, 5)); // Limit to 5
+                    }
+                  }}
+                />
+                <Button 
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="rounded-full h-8 w-8 md:h-10 md:w-10 transition-all text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                  title={`Upload ${supportsImage && supportsVideo ? 'image or video' : supportsImage ? 'image' : supportsVideo ? 'video' : 'file'}`}
+                >
+                  <Paperclip className="w-4 h-4 md:w-5 md:h-5" />
+                </Button>
+              </div>
+            )}
             {/* Auto-expanding Textarea */}
             <textarea 
               ref={textareaRef}
               value={message}
               onChange={handleInput}
               placeholder={isListening ? "Listening..." : placeholder}
-              className={`flex-1 max-h-[120px] md:max-h-[200px] bg-transparent border-none focus:outline-none resize-none text-gray-900 dark:text-white py-2.5 md:py-2 px-2 md:px-3 text-[14px] md:text-[16px] placeholder:text-gray-400 dark:placeholder:text-gray-500 ${isListening ? 'text-red-600 dark:text-red-400 font-medium' : ''} ${message ? 'overflow-y-auto custom-scrollbar' : 'overflow-hidden'} m-0 box-border`}
+              className={`flex-1 max-h-[120px] md:max-h-[200px] bg-transparent border-none focus:outline-none resize-none text-gray-900 dark:text-white pt-0 pb-2.5 md:py-2 px-2 md:px-3 text-[14px] md:text-[16px] placeholder:text-gray-400 dark:placeholder:text-gray-500 ${isListening ? 'text-red-600 dark:text-red-400 font-medium' : ''} ${message ? 'overflow-y-auto custom-scrollbar' : 'overflow-hidden'} m-0 box-border`}
               rows={1}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {

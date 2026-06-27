@@ -267,7 +267,8 @@ const CompareModelChatBox = ({ modelId, modelName, providerId, isActive, globalM
             <div className="w-full text-gray-800 dark:text-gray-200 text-[13px] sm:text-sm leading-relaxed max-w-none">
               {m.parts && m.parts.length > 0 ? (
                 m.parts.map((p: any, i: number) => {
-                  if (p.type === 'reasoning' && p.text) {
+                  const reasoningText = p.reasoning || (p.type === 'reasoning' ? p.text : null);
+                  if (p.type === 'reasoning' && reasoningText) {
                     const isThinking = (status === 'submitted' || status === 'streaming') && index === aiMessages.length - 1 && i === m.parts!.length - 1;
                     return (
                       <details key={i} className="mb-2 w-full group/details">
@@ -285,7 +286,7 @@ const CompareModelChatBox = ({ modelId, modelName, providerId, isActive, globalM
                           )}
                         </summary>
                         <div className="pt-2 pb-4 text-gray-500 dark:text-gray-400 whitespace-pre-wrap font-mono text-[12px] leading-relaxed pl-2 border-l-2 border-gray-200 dark:border-gray-800 ml-1 mt-1">
-                          {p.text}
+                          {reasoningText}
                         </div>
                       </details>
                     );

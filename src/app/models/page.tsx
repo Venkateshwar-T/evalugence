@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { Search, Info, CheckCircle2, X, Key, ChevronRight, ChevronDown, Loader2 } from "lucide-react";
+import { Search, CheckCircle2, X, Key, ChevronRight, ChevronDown, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
+import { formatModelName } from '@/utils/formatters';
 
 import providersData from "@/data/providers.json";
 import { useApiKeys } from "@/hooks/useApiKeys";
@@ -43,6 +44,19 @@ export default function ModelsPage() {
     setExpandedProviders(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
   };
 
+  const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    setVisibleCounts({});
+  }, [searchQuery]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>, providerId: string) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollHeight - scrollTop <= clientHeight + 100) {
+      setVisibleCounts(prev => ({ ...prev, [providerId]: (prev[providerId] || 20) + 20 }));
+    }
+  };
+
   const getProviderModels = (providerId: string) => {
     if (savedProviders[providerId] && savedProviders[providerId].models.length > 0) {
       return savedProviders[providerId].models;
@@ -55,8 +69,11 @@ export default function ModelsPage() {
     getProviderModels(p.id).some((m: string) => matchesSearch(searchQuery, m))
   );
   const connectedProvidersList = filteredProviders.filter(p => connectedProviderIds.includes(p.id));
-  const popularProviders = filteredProviders.filter(p => p.category === 'POPULAR' && !connectedProviderIds.includes(p.id));
-  const aggregatorProviders = filteredProviders.filter(p => p.category === 'AGGREGATOR' && !connectedProviderIds.includes(p.id));
+  const recommendedProviders = filteredProviders
+    .filter(p => (p.id === 'openai' || p.id === 'openrouter') && !connectedProviderIds.includes(p.id))
+    .sort((a, b) => a.id === 'openrouter' ? -1 : (b.id === 'openrouter' ? 1 : 0));
+  const popularProviders = filteredProviders.filter(p => p.category === 'POPULAR' && !connectedProviderIds.includes(p.id) && p.id !== 'openai' && p.id !== 'openrouter');
+  const moreProviders = filteredProviders.filter(p => p.category === 'AGGREGATOR' && !connectedProviderIds.includes(p.id) && p.id !== 'openai' && p.id !== 'openrouter');
 
   const handleSaveKey = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,11 +142,11 @@ export default function ModelsPage() {
         </div>
 
         {/* Content */}
-        <div className="flex flex-col gap-8 md:gap-12">
+        <div className="flex flex-col gap-6">
           {/* CONNECTED SECTION */}
           {connectedProvidersList.length > 0 && (
             <section className="flex flex-col gap-2 md:gap-4">
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-2">Connected</h2>
+              <h2 className="text-xs font-bold text-green-500 uppercase tracking-widest pl-2">Connected</h2>
               <div className="flex flex-col gap-3 md:gap-4">
                 {connectedProvidersList.map(provider => {
                   const isConnected = true;
@@ -185,11 +202,108 @@ export default function ModelsPage() {
                             className="overflow-hidden"
                           >
                             <div className="flex flex-col mt-4 ml-[60px] mr-4 pt-4 border-t border-gray-100 dark:border-gray-800/60" onClick={(e) => e.stopPropagation()}>
-                              <div className="flex flex-col gap-1 max-h-[250px] overflow-y-auto custom-scrollbar pr-2 pb-2">
-                                {sortedModels.map((model: string) => (
+                              <div 
+                                className="flex flex-col gap-1 max-h-[250px] overflow-y-auto custom-scrollbar pr-2 pb-2"
+                                onScroll={(e) => handleScroll(e, provider.id)}
+                              >
+                                {sortedModels.slice(0, visibleCounts[provider.id] || 20).map((model: string) => (
                                   <div key={model} className="flex items-center justify-between py-3 px-4 hover:bg-gray-50 dark:hover:bg-[#111] rounded-xl transition-colors cursor-pointer group/model">
                                     <span className={`text-sm ${searchQuery && matchesSearch(searchQuery, model) ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-700 dark:text-gray-300 font-medium'}`}>
-                                      {model}
+                                      {formatModelName(model)}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* RECOMMENDED SECTION */}
+          {recommendedProviders.length > 0 && (
+            <section className="flex flex-col gap-2 md:gap-4">
+              <h2 className="text-xs font-bold text-blue-500 dark:text-blue-400 uppercase tracking-widest pl-2">Recommended</h2>
+              <div className="flex flex-col gap-3 md:gap-4">
+                {recommendedProviders.map(provider => {
+                  const isConnected = connectedProviderIds.includes(provider.id);
+                  const displayModels = getProviderModels(provider.id);
+                  const sortedModels = [...displayModels].sort((a, b) => {
+                    if (!searchQuery) return 0;
+                    const aMatch = matchesSearch(searchQuery, a);
+                    const bMatch = matchesSearch(searchQuery, b);
+                    if (aMatch && !bMatch) return -1;
+                    if (!aMatch && bMatch) return 1;
+                    return 0;
+                  });
+                  const isExpanded = expandedProviders.includes(provider.id) || (searchQuery !== '' && displayModels.some(m => m.toLowerCase().includes(searchQuery.toLowerCase())));
+                  return (
+                    <div 
+                      key={provider.id}
+                      onClick={() => {
+                        setActiveProvider(provider);
+                        setApiKeyInput(savedProviders[provider.id]?.apiKey || '');
+                        setConnectionError('');
+                      }}
+                      className={`group relative flex flex-col p-3 md:p-4 bg-white dark:bg-[#0a0a0a] border ${isConnected ? 'border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.05)]' : 'border-blue-200 dark:border-blue-900/50 shadow-[0_0_15px_rgba(59,130,246,0.05)]'} rounded-2xl hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all cursor-pointer overflow-hidden`}
+                    >
+                      {isConnected ? (
+                        <div className="absolute top-0 bottom-0 left-0 w-1 bg-gradient-to-b from-green-400 to-emerald-500" />
+                      ) : (
+                        <div className="absolute top-0 bottom-0 left-0 w-1 bg-gradient-to-b from-blue-400 to-indigo-500 opacity-70" />
+                      )}
+                      
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2 md:gap-3 pl-1 md:pl-2">
+                          <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gray-50 dark:bg-white border border-gray-100 dark:border-gray-800 flex items-center justify-center p-1.5 md:p-2 shadow-inner shrink-0">
+                            <img src={provider.logo} alt={provider.name} className="w-full h-full object-contain" />
+                          </div>
+                          <h3 className="text-sm md:text-base font-bold text-gray-900 dark:text-white">{provider.name}</h3>
+                        </div>
+                        
+                        <div className="flex items-center gap-3 pr-2">
+                          {isConnected && (
+                            <button 
+                              onClick={(e) => toggleExpanded(e, provider.id)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-xs font-semibold text-gray-600 dark:text-gray-400 transition-colors mr-2"
+                            >
+                              Models <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                            </button>
+                          )}
+                          {isConnected ? (
+                            <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-xs font-bold tracking-wide">
+                              <CheckCircle2 className="w-4 h-4" />
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                              <ChevronRight className="w-4 h-4" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <AnimatePresence>
+                        {isConnected && isExpanded && (
+                          <motion.div 
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="flex flex-col mt-4 ml-[60px] mr-4 pt-4 border-t border-gray-100 dark:border-gray-800/60" onClick={(e) => e.stopPropagation()}>
+                              <div 
+                                className="flex flex-col gap-1 max-h-[250px] overflow-y-auto custom-scrollbar pr-2 pb-2"
+                                onScroll={(e) => handleScroll(e, provider.id)}
+                              >
+                                {sortedModels.slice(0, visibleCounts[provider.id] || 20).map((model: string) => (
+                                  <div key={model} className="flex items-center justify-between py-3 px-4 hover:bg-gray-50 dark:hover:bg-[#111] rounded-xl transition-colors cursor-pointer group/model">
+                                    <span className={`text-sm ${searchQuery && matchesSearch(searchQuery, model) ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-700 dark:text-gray-300 font-medium'}`}>
+                                      {formatModelName(model)}
                                     </span>
                                   </div>
                                 ))}
@@ -272,11 +386,14 @@ export default function ModelsPage() {
                             className="overflow-hidden"
                           >
                             <div className="flex flex-col mt-4 ml-[60px] mr-4 pt-4 border-t border-gray-100 dark:border-gray-800/60" onClick={(e) => e.stopPropagation()}>
-                              <div className="flex flex-col gap-1 max-h-[250px] overflow-y-auto custom-scrollbar pr-2 pb-2">
-                                {sortedModels.map((model: string) => (
+                              <div 
+                                className="flex flex-col gap-1 max-h-[250px] overflow-y-auto custom-scrollbar pr-2 pb-2"
+                                onScroll={(e) => handleScroll(e, provider.id)}
+                              >
+                                {sortedModels.slice(0, visibleCounts[provider.id] || 20).map((model: string) => (
                                   <div key={model} className="flex items-center justify-between py-3 px-4 hover:bg-gray-50 dark:hover:bg-[#111] rounded-xl transition-colors cursor-pointer group/model">
                                     <span className={`text-sm ${searchQuery && matchesSearch(searchQuery, model) ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-700 dark:text-gray-300 font-medium'}`}>
-                                      {model}
+                                      {formatModelName(model)}
                                     </span>
                                   </div>
                                 ))}
@@ -292,12 +409,12 @@ export default function ModelsPage() {
             </section>
           )}
 
-          {/* AGGREGATOR SECTION */}
-          {aggregatorProviders.length > 0 && (
+          {/* MORE PROVIDERS SECTION */}
+          {moreProviders.length > 0 && (
             <section className="flex flex-col gap-2 md:gap-4">
               <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-2">More Providers</h2>
               <div className="flex flex-col gap-3 md:gap-4">
-                {aggregatorProviders.map(provider => {
+                {moreProviders.map(provider => {
                   const isConnected = connectedProviderIds.includes(provider.id);
                   const displayModels = getProviderModels(provider.id);
                   const sortedModels = [...displayModels].sort((a, b) => {
@@ -359,11 +476,14 @@ export default function ModelsPage() {
                             className="overflow-hidden"
                           >
                             <div className="flex flex-col mt-4 ml-[60px] mr-4 pt-4 border-t border-gray-100 dark:border-gray-800/60" onClick={(e) => e.stopPropagation()}>
-                              <div className="flex flex-col gap-1 max-h-[250px] overflow-y-auto custom-scrollbar pr-2 pb-2">
-                                {sortedModels.map((model: string) => (
+                              <div 
+                                className="flex flex-col gap-1 max-h-[250px] overflow-y-auto custom-scrollbar pr-2 pb-2"
+                                onScroll={(e) => handleScroll(e, provider.id)}
+                              >
+                                {sortedModels.slice(0, visibleCounts[provider.id] || 20).map((model: string) => (
                                   <div key={model} className="flex items-center justify-between py-3 px-4 hover:bg-gray-50 dark:hover:bg-[#111] rounded-xl transition-colors cursor-pointer group/model">
                                     <span className={`text-sm ${searchQuery && matchesSearch(searchQuery, model) ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-700 dark:text-gray-300 font-medium'}`}>
-                                      {model}
+                                      {formatModelName(model)}
                                     </span>
                                   </div>
                                 ))}
@@ -459,7 +579,7 @@ export default function ModelsPage() {
                     )}
                     <div className="flex flex-col gap-2 relative">
                       <div className="flex items-center justify-between">
-                        <label className="text-[10px] md:text-xs font-bold text-gray-900 dark:text-white uppercase tracking-widest">
+                        <label htmlFor="api-key-input" className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest">
                           API Key
                         </label>
                       </div>
@@ -468,6 +588,7 @@ export default function ModelsPage() {
                           <Key className="h-3.5 w-3.5 md:h-4 md:w-4 text-gray-400" />
                         </div>
                         <input 
+                          id="api-key-input"
                           type="password" 
                           placeholder="Enter your API key..." 
                           autoFocus

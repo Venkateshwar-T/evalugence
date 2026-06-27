@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { X, Database, Search } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 
 export default function ModelMetadataViewer({ isOpen, onClose, modelName }: { isOpen: boolean, onClose: () => void, modelName: string }) {

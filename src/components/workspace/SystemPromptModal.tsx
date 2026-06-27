@@ -55,10 +55,11 @@ export default function SystemPromptModal({ isOpen, onClose, modelName = 'global
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar bg-white dark:bg-gray-950">
               <div className="flex flex-col gap-3">
-                <label className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest dark:text-white">
+                <label htmlFor="system-prompt-textarea" className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest dark:text-white">
                   Instructions
                 </label>
                 <textarea 
+                  id="system-prompt-textarea"
                   value={localSystemPrompt}
                   onChange={(e) => {
                     setLocalSystemPrompt(e.target.value);

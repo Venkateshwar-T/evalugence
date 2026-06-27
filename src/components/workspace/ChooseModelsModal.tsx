@@ -7,6 +7,7 @@ import { createPortal } from 'react-dom';
 import providersData from "@/data/providers.json";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { matchesSearch } from '@/utils/search';
+import { formatModelName } from '@/utils/formatters';
 
 interface ChooseModelsModalProps {
   isOpen: boolean;
@@ -18,14 +19,20 @@ interface ChooseModelsModalProps {
 export default function ChooseModelsModal({ isOpen, onClose, selectedModels, onConfirm }: ChooseModelsModalProps) {
   const { providers: savedProviders } = useApiKeys();
   const [searchQuery, setSearchQuery] = useState('');
+  const [visibleCount, setVisibleCount] = useState(20);
   const [localSelected, setLocalSelected] = useState<string[]>([]);
 
   useEffect(() => {
     if (isOpen) {
       setLocalSelected(selectedModels);
       setSearchQuery('');
+      setVisibleCount(20);
     }
   }, [isOpen, selectedModels]);
+
+  useEffect(() => {
+    setVisibleCount(20);
+  }, [searchQuery]);
 
   if (typeof document === 'undefined') return null;
 
@@ -57,6 +64,13 @@ export default function ChooseModelsModal({ isOpen, onClose, selectedModels, onC
         return [...prev, modelName];
       }
     });
+  };
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollHeight - scrollTop <= clientHeight + 100) {
+      setVisibleCount(prev => prev + 20);
+    }
   };
 
   return createPortal(
@@ -122,7 +136,7 @@ export default function ChooseModelsModal({ isOpen, onClose, selectedModels, onC
                             <img src={modelData.logo} alt={modelData.providerName} className="w-2 h-2 md:w-2.5 md:h-2.5 object-contain" />
                           </div>
                         )}
-                        <span className="text-[10px] md:text-[11px] font-bold max-w-[80px] md:max-w-none truncate">{modelName}</span>
+                        <span className="text-[10px] md:text-[11px] font-bold max-w-[80px] md:max-w-none truncate">{formatModelName(modelName)}</span>
                         <button onClick={() => handleToggle(modelName)} className="ml-0.5 text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 p-0.5 rounded-full hover:bg-blue-200/50 dark:hover:bg-blue-800/50 transition-colors">
                           <X className="w-2.5 h-2.5 md:w-3 md:h-3" />
                         </button>
@@ -136,10 +150,13 @@ export default function ChooseModelsModal({ isOpen, onClose, selectedModels, onC
             </div>
             
             {/* Grid Content */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50/30 dark:bg-[#0a0a0a]">
+            <div 
+              className="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50/30 dark:bg-[#0a0a0a]"
+              onScroll={handleScroll}
+            >
               {filteredModels.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
-                  {filteredModels.map((model) => {
+                  {filteredModels.slice(0, visibleCount).map((model) => {
                     const isSelected = localSelected.includes(model.name);
                     const isDisabled = !isSelected && localSelected.length >= 6;
                     
@@ -166,7 +183,7 @@ export default function ChooseModelsModal({ isOpen, onClose, selectedModels, onC
                         
                         <div className="flex flex-col overflow-hidden flex-1 pr-5 md:pr-6">
                           <span className={`font-bold text-xs md:text-[14px] truncate ${isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white group-hover:text-black dark:group-hover:text-white'}`}>
-                            {model.name}
+                            {formatModelName(model.name)}
                           </span>
                           <span className="text-[10px] md:text-[12px] text-gray-500 font-medium truncate">
                             {model.providerName}

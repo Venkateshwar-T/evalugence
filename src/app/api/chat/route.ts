@@ -3,6 +3,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createMistral } from '@ai-sdk/mistral';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 
 export async function POST(req: Request) {
   try {
@@ -49,7 +50,12 @@ export async function POST(req: Request) {
         break;
       }
       case 'openrouter': {
-        const openrouter = createOpenAI({ apiKey, baseURL: 'https://openrouter.ai/api/v1' });
+        const openrouter = createOpenRouter({ 
+          apiKey,
+          headers: {
+            'Authorization': `Bearer ${apiKey}`
+          }
+        });
         model = openrouter.chat(modelName);
         break;
       }
@@ -89,15 +95,37 @@ export async function POST(req: Request) {
     const config = payload.config || dataObj.config || headerConfig;
     let systemPrompt = config.systemPrompt || payload.system || dataObj.system || '';
 
-    // Implicitly inform the model of its exact name behind the scenes
-    const modelIdentityString = `[System Note: Your internal model identifier is '${modelName}'.]`;
-    systemPrompt = systemPrompt ? `${modelIdentityString}\n\n${systemPrompt}` : modelIdentityString;
+    // No default system prompt is injected anymore
 
     const streamOptions: any = {
       model,
       messages: coreMessages,
       system: systemPrompt
     };
+
+    if (config.parameters) {
+      if (config.parameters.temperature !== undefined) streamOptions.temperature = config.parameters.temperature;
+      if (config.parameters.max_tokens !== undefined) streamOptions.maxTokens = config.parameters.max_tokens;
+      if (config.parameters.top_p !== undefined) streamOptions.topP = config.parameters.top_p;
+      if (config.parameters.frequency_penalty !== undefined) streamOptions.frequencyPenalty = config.parameters.frequency_penalty;
+      if (config.parameters.presence_penalty !== undefined) streamOptions.presencePenalty = config.parameters.presence_penalty;
+      if (config.parameters.seed !== undefined) streamOptions.seed = config.parameters.seed;
+      if (config.parameters.stop) {
+        streamOptions.stopSequences = config.parameters.stop.split(',').map((s: string) => s.trim()).filter(Boolean);
+      }
+      
+      // Some provider specific params like top_k, min_p, etc. might need providerOptions or are handled by the provider if passed in
+      streamOptions.providerOptions = {
+        openai: {
+          reasoningEffort: config.parameters.reasoning_effort,
+          ...config.parameters
+        },
+        openrouter: {
+          include_reasoning: config.parameters.include_reasoning,
+          ...config.parameters
+        }
+      };
+    }
 
     const result = streamText(streamOptions);
 

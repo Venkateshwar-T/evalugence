@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import Footer from '@/components/landing/Footer';
 import { SplitSquareHorizontal, MessageSquare, BarChart3, SlidersHorizontal, History, ShieldCheck, Zap } from 'lucide-react';
 import Link from 'next/link';

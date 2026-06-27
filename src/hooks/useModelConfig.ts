@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react';
 
 export interface ModelConfig {
   systemPrompt: string;
+  parameters?: Record<string, any>;
 }
 
 export const DEFAULT_CONFIG: ModelConfig = {
-  systemPrompt: "You are a highly capable, helpful, and honest AI assistant. You provide clear, accurate, and direct answers while maintaining a polite and professional tone.",
+  systemPrompt: "",
 };
+
+const LEGACY_DEFAULT_PROMPT = "You are a highly capable, helpful, and honest AI assistant. You provide clear, accurate, and direct answers while maintaining a polite and professional tone.";
 
 export function useModelConfig(modelName: string | 'global') {
   const [config, setConfig] = useState<ModelConfig>(DEFAULT_CONFIG);
@@ -19,8 +22,8 @@ export function useModelConfig(modelName: string | 'global') {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (!parsed.systemPrompt || parsed.systemPrompt.trim() === '') {
-          parsed.systemPrompt = DEFAULT_CONFIG.systemPrompt;
+        if (parsed.systemPrompt === LEGACY_DEFAULT_PROMPT) {
+          parsed.systemPrompt = "";
         }
         setConfig({ ...DEFAULT_CONFIG, ...parsed });
       } catch {
@@ -33,8 +36,8 @@ export function useModelConfig(modelName: string | 'global') {
         if (globalSaved) {
           try {
             const parsedGlobal = JSON.parse(globalSaved);
-            if (!parsedGlobal.systemPrompt || parsedGlobal.systemPrompt.trim() === '') {
-              parsedGlobal.systemPrompt = DEFAULT_CONFIG.systemPrompt;
+            if (parsedGlobal.systemPrompt === LEGACY_DEFAULT_PROMPT) {
+              parsedGlobal.systemPrompt = "";
             }
             setConfig({ ...DEFAULT_CONFIG, ...parsedGlobal });
           } catch {
