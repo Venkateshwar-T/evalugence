@@ -157,7 +157,7 @@ export default function CompareMetricsSideMenu({
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              style={{ width: window.innerWidth < 768 ? '100%' : `${width}px` }}
+              style={{ width: typeof window !== 'undefined' && window.innerWidth < 768 ? '100%' : `${width}px` }}
               className="fixed right-0 top-0 bottom-0 bg-white dark:bg-[#0a0a0a] border-l border-gray-200 dark:border-gray-800 shadow-2xl z-[10001] flex flex-col"
             >
               {/* Resize Handle */}
