@@ -225,7 +225,7 @@ export default function CompareInterface({
                 <Globe className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">System Prompt</span>
               </button>
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-48 p-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-medium rounded-lg shadow-xl opacity-0 pointer-events-none group-hover/config:opacity-100 transition-all z-50 text-center">
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-xl shadow-2xl opacity-0 pointer-events-none group-hover/config:opacity-100 transition-all z-50 text-center whitespace-nowrap">
                 System Prompt
               </div>
             </div>
@@ -235,13 +235,15 @@ export default function CompareInterface({
           <div className="flex items-center gap-1 md:gap-4">
             <div className="hidden md:block"><ThemeToggle /></div>
             <div className="h-4 w-px bg-gray-200 dark:bg-gray-800 mx-1 hidden sm:block"></div>
-            <button
-              onClick={onMinimize}
-              className="p-1.5 md:p-2 rounded-full text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-              title="Minimize"
-            >
-              <Minimize2 className="w-5 h-5 md:w-5 md:h-5" />
-            </button>
+            <div className="relative group/min">
+              <button
+                onClick={onMinimize}
+                className="p-1.5 md:p-2 rounded-full text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+              >
+                <Minimize2 className="w-5 h-5 md:w-5 md:h-5" />
+              </button>
+              <div className="absolute top-full mt-2 right-0 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-xl opacity-0 group-hover/min:opacity-100 invisible group-hover/min:visible transition-all whitespace-nowrap shadow-2xl z-50 pointer-events-none">Minimize</div>
+            </div>
             <button
               onClick={onExit}
               className="p-1.5 md:px-4 md:py-1.5 rounded-full md:rounded-lg text-[13px] font-bold transition-all cursor-pointer border border-transparent md:border-gray-200 dark:md:border-gray-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 md:bg-white md:dark:bg-[#0a0a0a] shadow-none md:shadow-sm flex items-center justify-center"
@@ -298,10 +300,9 @@ export default function CompareInterface({
               >
                 {/* Box Header */}
                 <div className="flex items-center justify-between px-4 py-1.5 md:py-3 bg-gray-50/30 dark:bg-gray-900/10 border-b border-gray-100/50 dark:border-gray-800/30 relative z-20 shrink-0">
-                  <div className="relative">
+                  <div className="relative group/change">
                     <button 
                       onClick={() => setChangingModelId(model.id)}
-                      title="Change Model"
                       className="flex items-center gap-2.5 hover:bg-gray-200/40 dark:hover:bg-gray-800/40 py-1.5 px-2 pr-4 rounded-xl transition-all cursor-pointer group backdrop-blur-sm"
                     >
                       <div className="w-6 h-6 flex items-center justify-center bg-white rounded-full shrink-0 shadow-sm border border-gray-200">
@@ -311,30 +312,39 @@ export default function CompareInterface({
                         {formatModelName(model.name)}
                       </span>
                     </button>
+                    <div className="absolute top-full mt-1 left-4 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-xl opacity-0 group-hover/change:opacity-100 invisible group-hover/change:visible transition-all whitespace-nowrap shadow-2xl z-50 pointer-events-none">Change Model</div>
                   </div>
                   
                   <div className="flex items-center gap-1">
-                    <button 
-                      onClick={() => setViewingMetadataModel(model.name)}
-                      title="View Model Metadata"
-                      className="p-1.5 rounded-md text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors cursor-pointer"
-                    >
-                      <Database className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={() => toggleModelActive(model.id)}
-                      title={model.isActive ? "Turn Off" : "Turn On"}
-                      className={`p-1.5 rounded-md transition-colors cursor-pointer ${model.isActive ? 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                    >
-                      <Power className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={() => removeModel(model.id)}
-                      title="Remove Model"
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors cursor-pointer"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                    <div className="relative group/meta">
+                      <button 
+                        onClick={() => setViewingMetadataModel(model.name)}
+                        className="p-1.5 rounded-md text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors cursor-pointer block"
+                      >
+                        <Database className="w-4 h-4" />
+                      </button>
+                      <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-xl opacity-0 group-hover/meta:opacity-100 invisible group-hover/meta:visible transition-all whitespace-nowrap shadow-2xl z-50 pointer-events-none">View Metadata</div>
+                    </div>
+                    
+                    <div className="relative group/power">
+                      <button 
+                        onClick={() => toggleModelActive(model.id)}
+                        className={`p-1.5 rounded-md transition-colors cursor-pointer block ${model.isActive ? 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                      >
+                        <Power className="w-4 h-4" />
+                      </button>
+                      <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-xl opacity-0 group-hover/power:opacity-100 invisible group-hover/power:visible transition-all whitespace-nowrap shadow-2xl z-50 pointer-events-none">{model.isActive ? "Turn Off" : "Turn On"}</div>
+                    </div>
+
+                    <div className="relative group/remove">
+                      <button 
+                        onClick={() => removeModel(model.id)}
+                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors cursor-pointer block"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                      <div className="absolute top-full mt-1 right-0 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-xl opacity-0 group-hover/remove:opacity-100 invisible group-hover/remove:visible transition-all whitespace-nowrap shadow-2xl z-50 pointer-events-none">Remove Model</div>
+                    </div>
                   </div>
                 </div>
 

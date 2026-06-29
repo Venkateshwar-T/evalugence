@@ -8,8 +8,7 @@ import providersData from '@/data/providers.json';
 const InfoTooltip = ({ text }: { text: string }) => (
   <div className="group relative hidden md:flex items-center justify-center cursor-help ml-1.5">
     <Info className="w-3.5 h-3.5 text-gray-300 dark:text-gray-600 group-hover:text-gray-900 dark:group-hover:text-white transition-colors" />
-    <div className="absolute top-full mt-2 left-1/2 -translate-x-[85%] sm:-translate-x-1/2 w-48 p-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-medium rounded-lg shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-all z-[100] normal-case text-center">
-      <div className="absolute bottom-full left-[85%] sm:left-1/2 -translate-x-1/2 border-4 border-transparent border-b-gray-900 dark:border-b-white"></div>
+    <div className="absolute top-full mt-2 left-1/2 -translate-x-[85%] sm:-translate-x-1/2 w-48 p-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-xl shadow-2xl opacity-0 pointer-events-none group-hover:opacity-100 transition-all z-[100] normal-case text-center">
       {text}
     </div>
   </div>

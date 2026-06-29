@@ -58,6 +58,36 @@ const CompareModelChatBox = ({ modelId, modelName, providerId, isActive, globalM
   const { messages: chatMessages, setMessages, status: chatStatus, error: chatError, append } = chat as any;
   const messages = chatMessages || [];
   const status = chatStatus || 'ready';
+
+  useEffect(() => {
+    if (chatError) {
+      setMessages((prev: any) => [
+        ...prev,
+        { id: Date.now().toString(), role: 'data', content: `EVALUGENCE_ERROR:${chatError.message}` }
+      ]);
+    }
+  }, [chatError, setMessages]);
+
+  const [waitState, setWaitState] = useState<0 | 1 | 2>(0);
+
+  useEffect(() => {
+    let timer1: NodeJS.Timeout;
+    let timer2: NodeJS.Timeout;
+    if (status === 'submitted') {
+      timer1 = setTimeout(() => {
+        setWaitState(1);
+      }, 5000);
+      timer2 = setTimeout(() => {
+        setWaitState(2);
+      }, 15000);
+    } else {
+      setWaitState(0);
+    }
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, [status]);
   const error = chatError;
 
   useEffect(() => {
@@ -204,6 +234,38 @@ const CompareModelChatBox = ({ modelId, modelName, providerId, isActive, globalM
   return (
     <div className="flex flex-col gap-4 h-full overflow-y-auto p-4 custom-scrollbar" ref={scrollRef}>
       {messages.map((m: any, index: number) => {
+        if (m.role === 'data' && (m.content as string).startsWith('EVALUGENCE_ERROR:')) {
+          return (
+            <div key={m.id} className="flex flex-col items-start w-full group">
+              <div className="flex gap-4 w-full">
+                <div className="hidden md:flex w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 items-center justify-center shrink-0 shadow-sm mt-0.5">
+                  <span className="text-red-500 font-bold text-lg">!</span>
+                </div>
+                <div className="text-red-600 dark:text-red-400 text-[14px] md:text-[15px] leading-relaxed bg-red-50 dark:bg-red-900/10 p-3.5 md:p-4 rounded-2xl rounded-tl-sm border border-red-100 dark:border-red-900/30 w-fit max-w-full">
+                  <div className="flex items-start justify-between gap-4 mb-1">
+                    <span className="font-semibold">Error communicating with API:</span>
+                    <div className="group/tooltip relative z-[9999]">
+                      <button className="text-red-400 hover:text-red-600 dark:text-red-500/70 dark:hover:text-red-400 transition-colors cursor-help mt-0.5">
+                        <Info className="w-[18px] h-[18px]" />
+                      </button>
+                      <div className="absolute top-1/2 -translate-y-1/2 right-full mr-3 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-[13px] rounded-xl shadow-2xl p-4 opacity-0 group-hover/tooltip:opacity-100 group-hover/tooltip:visible invisible transition-all z-[10000]">
+                        <strong className="block mb-2 text-gray-900 dark:text-gray-100 text-sm">Possible Reasons:</strong>
+                        <ul className="list-disc pl-4 flex flex-col gap-1.5 marker:text-gray-400">
+                          <li>You exceeded your API Rate Limits (Requests per minute).</li>
+                          <li>You ran out of API usage Quota for this specific model.</li>
+                          <li>Your API Key is invalid or expired.</li>
+                          <li>The model provider's servers are down.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  {(m.content as string).replace('EVALUGENCE_ERROR:', '')}
+                </div>
+              </div>
+            </div>
+          );
+        }
+
         if (m.role === 'user') {
           let text = m.content;
           if (!text && m.parts) {
@@ -218,15 +280,17 @@ const CompareModelChatBox = ({ modelId, modelName, providerId, isActive, globalM
                 <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-medium text-gray-400 dark:text-gray-500">
                   <span>{estimateTokens(text).toLocaleString()} tokens</span>
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => handleCopy(m.id, text)} 
-                  className="h-9 w-9 p-0 text-gray-500 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
-                  title="Copy Prompt"
-                >
-                  {copiedId === m.id ? <Check className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
-                </Button>
+                <div className="relative group/copy">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleCopy(m.id, text)} 
+                    className="h-9 w-9 p-0 text-gray-500 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    {copiedId === m.id ? <Check className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
+                  </Button>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-xl opacity-0 group-hover/copy:opacity-100 invisible group-hover/copy:visible transition-all whitespace-nowrap shadow-2xl z-50 pointer-events-none">Copy Prompt</div>
+                </div>
               </div>
             </div>
           );
@@ -308,18 +372,20 @@ const CompareModelChatBox = ({ modelId, modelName, providerId, isActive, globalM
             </div>
             
             <div className="flex items-center gap-2 md:gap-4 w-full opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity mt-0 ml-1">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => {
-                  const textToRender = m.parts ? m.parts.map((p: any) => p.text || p.content || '').join('') : m.content;
-                  handleCopy(m.id, textToRender);
-                }}
-                className="h-9 w-9 p-0 text-gray-500 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
-                title="Copy Response"
-              >
-                {copiedId === m.id ? <Check className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
-              </Button>
+              <div className="relative group/copy">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => {
+                    const textToRender = m.parts ? m.parts.map((p: any) => p.text || p.content || '').join('') : m.content;
+                    handleCopy(m.id, textToRender);
+                  }}
+                  className="h-9 w-9 p-0 text-gray-500 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  {copiedId === m.id ? <Check className="w-5 h-5 text-green-500" /> : <Copy className="w-5 h-5" />}
+                </Button>
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-xl opacity-0 group-hover/copy:opacity-100 invisible group-hover/copy:visible transition-all whitespace-nowrap shadow-2xl z-50 pointer-events-none">Copy Response</div>
+              </div>
               {mMetrics && (
                 <div className="flex items-center gap-1.5 md:gap-3 text-[10px] md:text-xs font-medium text-gray-400 dark:text-gray-500">
                   <span>{mMetrics.tokens.toLocaleString()} tokens</span>
@@ -335,32 +401,19 @@ const CompareModelChatBox = ({ modelId, modelName, providerId, isActive, globalM
       })}
       
       {status === 'submitted' && (
-        <div className="flex items-center gap-1.5 h-8 mt-2 ml-1">
-          <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: '0ms' }}></span>
-          <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: '150ms' }}></span>
-          <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: '300ms' }}></span>
-        </div>
-      )}
-      
-      {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-2xl text-red-600 dark:text-red-400 text-[13px] mt-2 relative pr-10">
-          <p className="font-bold mb-1">Error Generating Response</p>
-          <p className="opacity-90">{error.message}</p>
-          
-          <div className="group/tooltip absolute top-4 right-4 z-[9999]">
-            <button className="text-red-400 hover:text-red-600 dark:text-red-500/70 dark:hover:text-red-400 transition-colors cursor-help">
-              <Info className="w-4 h-4" />
-            </button>
-            <div className="absolute top-1/2 -translate-y-1/2 right-full mr-3 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-[11px] rounded-xl shadow-2xl p-3 opacity-0 group-hover/tooltip:opacity-100 group-hover/tooltip:visible invisible transition-all z-[10000]">
-              <strong className="block mb-2 text-gray-900 dark:text-gray-100 text-xs">Possible Reasons:</strong>
-              <ul className="list-disc pl-4 flex flex-col gap-1 marker:text-gray-400">
-                <li>You exceeded API Rate Limits.</li>
-                <li>You ran out of API usage Quota.</li>
-                <li>Your API Key is invalid.</li>
-                <li>The provider's servers are down or experiencing high demand.</li>
-              </ul>
-            </div>
+        <div className="flex flex-col gap-2 mt-2 ml-1">
+          <div className="flex items-center gap-1.5 h-8">
+            <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: '0ms' }}></span>
+            <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: '150ms' }}></span>
+            <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: '300ms' }}></span>
           </div>
+          {waitState > 0 && (
+            <div className="text-xs text-gray-500 dark:text-gray-400 italic">
+              {waitState === 1 
+                ? "This model is taking longer than usual. The provider might be experiencing high traffic or a cold start."
+                : "Still no response. The provider's API might be down or heavily congested. Consider trying another model."}
+            </div>
+          )}
         </div>
       )}
     </div>

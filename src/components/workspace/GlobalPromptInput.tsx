@@ -13,7 +13,7 @@ const APP_FACTS = [
   "Tip: Switch on 'Volatile API Keys' in Settings if you're using a shared device for maximum security.",
   "Fun Fact: This platform was built specifically to evaluate and test bleeding-edge AI models side-by-side.",
   "Tip: You can easily switch between Light, Dark, and System themes in the Settings to match your preference.",
-  "Did you know? Model metadata in the Settings page reveals useful details like context window size, input cost, and maximum output tokens."
+  "Tip: You can click the gear icon to configure parameters and system prompts for each model individually."
 ];
 
 
@@ -254,15 +254,17 @@ export default function GlobalPromptInput({
                 <Mic className={`w-4 h-4 md:w-5 md:h-5 ${isListening ? 'animate-pulse' : ''}`} />
               </Button>
               {isGenerating ? (
-                <Button 
-                  variant="primary"
-                  size="icon"
-                  onClick={onStop}
-                  className="rounded-full shadow-md hover:scale-105 h-8 w-8 md:h-10 md:w-10 ml-0.5 md:ml-1 transition-transform bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-200"
-                  title="Stop Generating"
-                >
-                  <Square className="w-3 h-3 md:w-4 md:h-4 fill-current" />
-                </Button>
+                <div className="relative group/stop">
+                  <Button 
+                    variant="primary"
+                    size="icon"
+                    onClick={onStop}
+                    className="rounded-full shadow-md hover:scale-105 h-8 w-8 md:h-10 md:w-10 ml-0.5 md:ml-1 transition-transform bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-200"
+                  >
+                    <Square className="w-3 h-3 md:w-4 md:h-4 fill-current" />
+                  </Button>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-xl opacity-0 group-hover/stop:opacity-100 invisible group-hover/stop:visible transition-all whitespace-nowrap shadow-2xl z-50 pointer-events-none">Stop Generating</div>
+                </div>
               ) : (
                 <Button 
                   variant="primary"

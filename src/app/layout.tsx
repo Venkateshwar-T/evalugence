@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Evalugence | AI Model Benchmarking",
-  description: "A Bring-Your-Own-Key (BYOK) AI evaluation workspace. Test, compare, and benchmark bleeding-edge Large Language Models side-by-side in real time.",
+  title: "Evalugence | AI Evaluation Lab",
+  description: "A Bring-Your-Own-Key (BYOK) AI evaluation workspace. Test and compare bleeding-edge Large Language Models side-by-side in real time.",
   appleWebApp: {
     title: "Evalugence",
   },

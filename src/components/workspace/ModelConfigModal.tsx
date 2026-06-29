@@ -92,6 +92,7 @@ export default function ModelConfigModal({ isOpen, onClose, modelName, providerI
   const [modelMeta, setModelMeta] = useState<any>(null);
   const [localParams, setLocalParams] = useState<Record<string, any>>({});
   const [localSystemPrompt, setLocalSystemPrompt] = useState<string>('');
+  const [localMemory, setLocalMemory] = useState<boolean>(true);
   
   const isSupportedProvider = providerId === 'openai' || providerId === 'openrouter' || providerId === 'google';
 
@@ -110,19 +111,21 @@ export default function ModelConfigModal({ isOpen, onClose, modelName, providerI
     if (isOpen) {
       setLocalParams(config.parameters || {});
       setLocalSystemPrompt(config.systemPrompt || '');
+      setLocalMemory(config.memory ?? true);
     }
-  }, [isOpen, config.parameters, config.systemPrompt]);
+  }, [isOpen, config.parameters, config.systemPrompt, config.memory]);
 
   if (!isOpen) return null;
 
   const handleSave = () => {
-    saveConfig({ ...config, parameters: localParams, systemPrompt: localSystemPrompt });
+    saveConfig({ ...config, memory: localMemory, parameters: localParams, systemPrompt: localSystemPrompt });
     onClose();
   };
 
   const handleReset = () => {
     setLocalParams({});
     setLocalSystemPrompt('');
+    setLocalMemory(true);
   };
 
   // Determine which parameters to show
@@ -135,10 +138,11 @@ export default function ModelConfigModal({ isOpen, onClose, modelName, providerI
     if (providerId === 'google') {
       supportedParams = ['temperature', 'top_p', 'top_k', 'max_tokens', 'stop'];
     } else {
-      supportedParams = ['temperature', 'top_p', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'stop'];
-    }
-    if (modelName.includes('o1') || modelName.includes('o3')) {
-      supportedParams.push('reasoning_effort');
+      if (modelName.includes('o1') || modelName.includes('o3')) {
+        supportedParams = ['max_tokens', 'reasoning_effort'];
+      } else {
+        supportedParams = ['temperature', 'top_p', 'max_tokens', 'frequency_penalty', 'presence_penalty', 'stop'];
+      }
     }
     if (providerId === 'openrouter') {
       supportedParams.push('top_k', 'min_p', 'repetition_penalty');
@@ -198,22 +202,30 @@ export default function ModelConfigModal({ isOpen, onClose, modelName, providerI
           </button>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar bg-white dark:bg-gray-950">
-          {!isSupportedProvider ? (
-            <div className="flex flex-col items-center justify-center h-40 text-center gap-2">
-              <Settings2 className="w-8 h-8 text-gray-300 dark:text-gray-700 mb-2" />
-              <p className="text-gray-600 dark:text-gray-300 font-medium text-sm">Configuration not supported for this provider.</p>
-            </div>
-          ) : supportedParams.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-40 text-center gap-2">
-              <p className="text-gray-500 dark:text-gray-400 text-sm">No supported parameters found in metadata for this model.</p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-6">
-              
-              {/* System Prompt Section */}
-              <div className="flex flex-col gap-2 border-b border-gray-100 dark:border-gray-800 pb-5">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar text-gray-900 dark:text-gray-100">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-6 border-b border-gray-100 dark:border-gray-800 pb-6">
+              <div className="flex flex-row items-start justify-between gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[13px] md:text-sm font-bold text-gray-900 dark:text-gray-100">
+                    Session Memory
+                  </label>
+                  <p className="text-[11px] text-gray-400 dark:text-gray-500 max-w-[250px]">
+                    If enabled, the model remembers the entire chat history. If disabled, it acts as a single-turn request.
+                  </p>
+                </div>
+                <div className="flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => setLocalMemory(!localMemory)}
+                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-opacity-75 ${localMemory ? 'bg-black dark:bg-white' : 'bg-gray-200 dark:bg-gray-800'}`}
+                  >
+                    <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white dark:bg-black shadow-lg ring-0 transition duration-200 ease-in-out ${localMemory ? 'translate-x-4' : 'translate-x-0'}`} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
                 <label htmlFor="modal-system-prompt" className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest">
                   System Prompt
                 </label>
@@ -222,102 +234,111 @@ export default function ModelConfigModal({ isOpen, onClose, modelName, providerI
                   value={localSystemPrompt}
                   onChange={(e) => setLocalSystemPrompt(e.target.value)}
                   placeholder="You are a helpful assistant..."
-                  className="w-full h-24 p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-900 dark:text-white resize-none custom-scrollbar focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                  className="w-full h-24 p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-900 dark:text-white resize-none custom-scrollbar focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-600 focus:border-transparent transition-all"
                 />
                 <p className="text-[11px] text-gray-400 dark:text-gray-500">
                   Override the global system prompt for this specific model.
                 </p>
               </div>
+            </div>
 
-              {supportedParams.length > 0 && supportedParams.map((param) => {
-                const schema = param === 'reasoning_effort' ? dynamicReasoningSchema : PARAM_SCHEMA[param];
-                if (!schema) return null;
+            {!isSupportedProvider || supportedParams.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-6 text-center opacity-70">
+                <p className="text-gray-500 dark:text-gray-400 text-xs italic">
+                  This provider only supports the standard configurations shown above.
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-6 pt-2">
+                {supportedParams.map((param) => {
+                  const schema = param === 'reasoning_effort' ? dynamicReasoningSchema : PARAM_SCHEMA[param];
+                  if (!schema) return null;
 
-                let defaultVal = schema.default;
-                if (modelMeta) {
-                  if (modelMeta[param] !== undefined && typeof modelMeta[param] !== 'object') {
-                    defaultVal = modelMeta[param];
-                  } else if (modelMeta.parameters?.[param]?.default !== undefined) {
-                    defaultVal = modelMeta.parameters[param].default;
-                  } else if (modelMeta.default_parameters?.[param] !== undefined) {
-                    defaultVal = modelMeta.default_parameters[param];
-                  } else if (modelMeta.architecture?.[param] !== undefined) {
-                    defaultVal = modelMeta.architecture[param];
+                  let defaultVal = schema.default;
+                  if (modelMeta) {
+                    if (modelMeta[param] !== undefined && typeof modelMeta[param] !== 'object') {
+                      defaultVal = modelMeta[param];
+                    } else if (modelMeta.parameters?.[param]?.default !== undefined) {
+                      defaultVal = modelMeta.parameters[param].default;
+                    } else if (modelMeta.default_parameters?.[param] !== undefined) {
+                      defaultVal = modelMeta.default_parameters[param];
+                    } else if (modelMeta.architecture?.[param] !== undefined) {
+                      defaultVal = modelMeta.architecture[param];
+                    }
                   }
-                }
 
-                const val = localParams[param] !== undefined ? localParams[param] : defaultVal;
+                  const val = localParams[param] !== undefined ? localParams[param] : defaultVal;
 
-                return (
-                  <div key={param} className="flex flex-col gap-2">
-                    <div className="flex justify-between items-center">
-                      <label htmlFor={`param-${param}`} className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest">
-                        {schema.label}
-                      </label>
-                      {schema.type === 'number' && (
-                        <span className="text-[12px] text-gray-500 font-mono">{val}</span>
-                      )}
-                    </div>
+                  return (
+                    <div key={param} className="flex flex-col gap-2">
+                      <div className="flex justify-between items-center">
+                        <label htmlFor={`param-${param}`} className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest">
+                          {schema.label}
+                        </label>
+                        {schema.type === 'number' && (
+                          <span className="text-[12px] text-gray-500 font-mono">{val}</span>
+                        )}
+                      </div>
 
-                    {schema.type === 'number' && schema.max !== undefined ? (
-                      <input 
-                        id={`param-${param}`}
-                        type="range" 
-                        min={schema.min} 
-                        max={schema.max} 
-                        step={schema.step} 
-                        value={val ?? schema.min ?? 0}
-                        onChange={(e) => setLocalParams({ ...localParams, [param]: parseFloat(e.target.value) })}
-                        className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-blue-600"
-                      />
-                    ) : schema.type === 'number' ? (
-                      <input 
-                        id={`param-${param}`}
-                        type="number" 
-                        min={schema.min}
-                        step={schema.step}
-                        value={val ?? ''}
-                        placeholder={param === 'seed' ? 'Random' : ''}
-                        onChange={(e) => setLocalParams({ ...localParams, [param]: e.target.value ? parseFloat(e.target.value) : '' })}
-                        className="w-full px-3 py-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-                      />
-                    ) : schema.type === 'boolean' ? (
-                      <label className="relative inline-flex items-center cursor-pointer">
+                      {schema.type === 'number' && schema.max !== undefined ? (
                         <input 
                           id={`param-${param}`}
-                          type="checkbox" 
-                          checked={val ?? false} 
-                          onChange={(e) => setLocalParams({ ...localParams, [param]: e.target.checked })}
-                          className="sr-only peer" 
+                          type="range" 
+                          min={schema.min} 
+                          max={schema.max} 
+                          step={schema.step} 
+                          value={val ?? schema.min ?? 0}
+                          onChange={(e) => setLocalParams({ ...localParams, [param]: parseFloat(e.target.value) })}
+                          className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-blue-600"
                         />
-                        <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                      </label>
-                    ) : schema.type === 'enum' ? (
-                      <CustomSelect 
-                        options={schema.options || []} 
-                        value={val ?? ''} 
-                        onChange={(newVal) => setLocalParams({ ...localParams, [param]: newVal })} 
-                        disabled={param === 'reasoning_effort' && localParams['include_reasoning'] === false}
-                        openUpwards={param === 'reasoning_effort'}
-                      />
-                    ) : (
-                      <input 
-                        id={`param-${param}`}
-                        type="text" 
-                        value={val ?? ''}
-                        placeholder={param === 'stop' ? 'word1, word2' : ''}
-                        onChange={(e) => setLocalParams({ ...localParams, [param]: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                      ) : schema.type === 'number' ? (
+                        <input 
+                          id={`param-${param}`}
+                          type="number" 
+                          min={schema.min}
+                          step={schema.step}
+                          value={val ?? ''}
+                          placeholder={param === 'seed' ? 'Random' : ''}
+                          onChange={(e) => setLocalParams({ ...localParams, [param]: e.target.value ? parseFloat(e.target.value) : '' })}
+                          className="w-full px-3 py-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                        />
+                      ) : schema.type === 'boolean' ? (
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            id={`param-${param}`}
+                            type="checkbox" 
+                            checked={val ?? false} 
+                            onChange={(e) => setLocalParams({ ...localParams, [param]: e.target.checked })}
+                            className="sr-only peer" 
+                          />
+                          <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        </label>
+                      ) : schema.type === 'enum' ? (
+                        <CustomSelect 
+                          options={schema.options || []} 
+                          value={val ?? ''} 
+                          onChange={(newVal) => setLocalParams({ ...localParams, [param]: newVal })} 
+                          disabled={param === 'reasoning_effort' && localParams['include_reasoning'] === false}
+                          openUpwards={param === 'reasoning_effort'}
+                        />
+                      ) : (
+                        <input 
+                          id={`param-${param}`}
+                          type="text" 
+                          value={val ?? ''}
+                          placeholder={param === 'stop' ? 'word1, word2' : ''}
+                          onChange={(e) => setLocalParams({ ...localParams, [param]: e.target.value })}
+                          className="w-full px-3 py-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Footer */}
         {isSupportedProvider && supportedParams.length > 0 && (
           <div className="p-4 md:p-5 border-t border-gray-100 dark:border-gray-800/60 bg-gray-50/50 dark:bg-gray-900/20 flex justify-between gap-3">
             <Button 

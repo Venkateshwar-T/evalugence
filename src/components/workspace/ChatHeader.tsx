@@ -57,7 +57,7 @@ export default function ChatHeader({
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 md:w-[18px] md:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
               </button>
-              <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-[11px] font-bold tracking-wide rounded-lg opacity-0 group-hover/btn:opacity-100 invisible group-hover/btn:visible transition-all whitespace-nowrap shadow-xl z-50 pointer-events-none">New Chat</div>
+              <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-xl opacity-0 group-hover/btn:opacity-100 invisible group-hover/btn:visible transition-all whitespace-nowrap shadow-2xl z-50 pointer-events-none">New Chat</div>
             </div>
           )}
 
@@ -68,7 +68,7 @@ export default function ChatHeader({
             >
               <Database className="w-3.5 h-3.5 md:w-[16px] md:h-[16px]" />
             </button>
-            <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-[11px] font-bold tracking-wide rounded-lg opacity-0 group-hover/btn:opacity-100 invisible group-hover/btn:visible transition-all whitespace-nowrap shadow-xl z-50 pointer-events-none">Raw Metadata</div>
+            <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-xl opacity-0 group-hover/btn:opacity-100 invisible group-hover/btn:visible transition-all whitespace-nowrap shadow-2xl z-50 pointer-events-none">Raw Metadata</div>
           </div>
 
           <div className="relative group/btn flex items-center justify-center">
@@ -78,7 +78,7 @@ export default function ChatHeader({
             >
               <Settings2 className="w-3.5 h-3.5 md:w-[16px] md:h-[16px]" />
             </button>
-            <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-[11px] font-bold tracking-wide rounded-lg opacity-0 group-hover/btn:opacity-100 invisible group-hover/btn:visible transition-all whitespace-nowrap shadow-xl z-50 pointer-events-none">Configuration</div>
+            <div className="absolute top-full mt-3 left-1/2 -translate-x-1/2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-xl opacity-0 group-hover/btn:opacity-100 invisible group-hover/btn:visible transition-all whitespace-nowrap shadow-2xl z-50 pointer-events-none">Configuration</div>
           </div>
         </div>
       </div>

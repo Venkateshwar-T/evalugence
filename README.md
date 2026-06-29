@@ -1,31 +1,22 @@
-# Evalugence
+# Evalugence | AI Evaluation Lab
 
-Evalugence is a high-performance, Bring-Your-Own-Key (BYOK) AI evaluation workspace. Designed for developers, researchers, and prompt engineers, it allows you to test, compare, and benchmark bleeding-edge Large Language Models (LLMs) side-by-side in real time.
+Evalugence is a high-performance, Bring-Your-Own-Key (BYOK) workspace that lets you test, compare, and analyze AI models side-by-side in real time.
 
-## 🚀 Key Features
+## Fast Facts
+- **Multi-Model Testing:** Fire a single prompt to up to 5 models at once and watch them stream back simultaneously.
+- **Real-Time Telemetry:** Instantly see Time-To-First-Token (TTFT) and raw token generation speed (Tokens/Second) to identify the fastest models.
+- **Provider Agnostic:** Connect directly to OpenAI, Anthropic, Google, Mistral, xAI, or OpenRouter. Everything works through one unified interface.
+- **Dynamic Configuration:** Adjust system prompts, max tokens, temperature, and even reasoning effort for advanced o1/o3 models per provider. 
 
-* **Side-by-Side Comparison:** Test identical prompts against up to 5 different AI models simultaneously to evaluate reasoning capability, output quality, and latency.
-* **Deep Evaluation Metrics:** Gain transparent insights into model performance with real-time tracking of Time-To-First-Token (TTFT), raw generation speed (Tokens per Second), and context length.
-* **Bring Your Own Key (BYOK) Architecture:** Evalugence prioritizes your security. API keys are strictly stored on your local machine using client-side persistent storage. Requests are routed through a secure backend proxy to bypass CORS restrictions without ever logging, caching, or exposing your keys.
-* **Broad Provider Support:** Connect natively to leading LLM providers (OpenAI, Anthropic, Google, DeepMind) or leverage aggregator services (like OpenRouter, Together AI, or Groq) to access hundreds of open-source models instantly.
-* **Custom System Prompts:** Shape model behavior dynamically using granular global system prompts to ensure apples-to-apples evaluations.
+## 100% Local, Zero-Trust Privacy
+Your data never touches a remote server database:
+- **Local Storage Only:** API keys and chat history are saved exclusively to your browser's local storage or IndexedDB.
+- **Direct Proxying:** Requests are routed through a stateless Next.js backend purely to bypass browser CORS restrictions. Keys are never logged, cached, or saved.
+- **Volatile Mode:** An optional setting ensures your keys are instantly wiped the moment you close the browser tab.
 
-## 🔒 Privacy & Security First
+## Quick Start
+1. **Connect:** Go to Settings and enter your API keys for the providers you want to use.
+2. **Chat or Compare:** Enter the Lab. You can chat one-on-one, or toggle "Compare Mode" to test multiple models against each other.
+3. **Analyze:** Check the Dashboard to review your historical request latency and average token speeds.
 
-Evalugence operates on a strict zero-trust model regarding your data:
-- **Zero Server Storage:** Your API keys, chat history, and preferences never touch a remote database.
-- **Volatile Key Mode:** Enable auto-deletion in Settings to ensure your API keys are securely wiped from your device the moment you close your browser tab—perfect for shared environments.
-- **Local Dashboard Analytics:** Your evaluation metrics and historical session data are securely constructed from your browser's local state.
-
-
-## 🧠 Usage Workflow
-
-1. **Connect Providers:** Navigate to the **Models** page and connect your preferred AI providers by supplying an API key.
-2. **Enter the Lab:** Open the **Lab** workspace to begin interacting with your models.
-3. **Benchmark:** Toggle to **Compare Models** mode, select the specific models you wish to benchmark, and fire a prompt.
-4. **Monitor Performance:** Open the **Evaluation Metrics** side menu to monitor TTFT and Token Speed in real-time as the models stream their responses.
-5. **Review Analytics:** Check your **Dashboard** to review aggregate data and discover which models consistently perform fastest for your specific workloads.
-
----
-
-*Built for the future of multi-model AI development.*
+*Built for speed, transparency, and multi-model workflows.*

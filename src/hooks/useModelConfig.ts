@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 
 export interface ModelConfig {
   systemPrompt: string;
+  memory?: boolean;
   parameters?: Record<string, any>;
 }
 
 export const DEFAULT_CONFIG: ModelConfig = {
   systemPrompt: "",
+  memory: true,
 };
 
 const LEGACY_DEFAULT_PROMPT = "You are a highly capable, helpful, and honest AI assistant. You provide clear, accurate, and direct answers while maintaining a polite and professional tone.";

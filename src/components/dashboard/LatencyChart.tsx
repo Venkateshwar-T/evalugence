@@ -64,7 +64,7 @@ export default function LatencyChart() {
                   if (active && payload && payload.length) {
                     const d = payload[0].payload;
                     return (
-                      <div className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-3 py-2 rounded-xl shadow-xl text-xs font-medium flex items-center gap-2">
+                      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded-xl shadow-2xl text-xs font-medium flex items-center gap-2">
                         <span className="font-bold">{d.name}</span>
                         <span className="text-gray-400 dark:text-gray-500">|</span>
                         <span>{d.ttft} ms</span>

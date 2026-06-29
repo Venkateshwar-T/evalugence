@@ -116,7 +116,6 @@ export default function Navbar() {
                 ? 'bg-black dark:bg-white text-white dark:text-black border border-transparent' 
                 : 'bg-white dark:bg-[#0a0a0a] text-gray-700 dark:text-gray-300 border border-gray-200/50 dark:border-gray-800/50 hover:border-gray-300 dark:hover:border-gray-700'
             }`}
-            title="Dashboard"
           >
             <LayoutDashboard className={`w-4 h-4 transition-transform group-hover:scale-110 ${pathname === '/dashboard' ? 'text-white dark:text-black' : 'text-gray-500 dark:text-gray-400'}`} />
             Dashboard

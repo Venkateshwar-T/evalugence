@@ -1,12 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
 
 export default function GlobalLogic() {
-  const router = useRouter();
-  const pathname = usePathname();
-
   // Run ONLY on initial mount (true refresh)
   useEffect(() => {
     try {
@@ -23,8 +19,15 @@ export default function GlobalLogic() {
         localStorage.removeItem('evalugence_providers');
         window.dispatchEvent(new Event('evalugence_providers_updated'));
       }
+
+      // 2. Register Service Worker for PWA
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(err => {
+          console.error('Service Worker registration failed:', err);
+        });
+      }
     } catch (e) {
-      console.warn('Failed to access localStorage during GlobalLogic startup', e);
+      console.warn('Failed to execute GlobalLogic startup logic', e);
     }
   }, []);
 

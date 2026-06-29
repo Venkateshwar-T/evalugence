@@ -63,7 +63,7 @@ export default function SystemPromptModal({ isOpen, onClose, modelName = 'global
                   value={localSystemPrompt}
                   onChange={(e) => {
                     setLocalSystemPrompt(e.target.value);
-                    saveConfig({ systemPrompt: e.target.value });
+                    saveConfig({ ...config, systemPrompt: e.target.value });
                   }}
                   placeholder="e.g. You are a helpful AI assistant. Answer concisely."
                   className="w-full min-h-[200px] p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl text-[14px] text-gray-900 dark:text-white resize-y focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all leading-relaxed"

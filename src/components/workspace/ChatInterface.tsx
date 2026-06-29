@@ -42,6 +42,27 @@ const ChatInterface = ({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const [waitState, setWaitState] = useState<0 | 1 | 2>(0);
+
+  useEffect(() => {
+    let timer1: NodeJS.Timeout;
+    let timer2: NodeJS.Timeout;
+    if (isLoading) {
+      timer1 = setTimeout(() => {
+        setWaitState(1);
+      }, 5000);
+      timer2 = setTimeout(() => {
+        setWaitState(2);
+      }, 15000);
+    } else {
+      setWaitState(0);
+    }
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, [isLoading]);
+
   useEffect(() => {
     if (bottomRef.current) {
       bottomRef.current.scrollIntoView();
@@ -57,15 +78,6 @@ const ChatInterface = ({
 
   const renderMessageContent = (msg: Message, isThinking: boolean = false) => {
     const msgAny = msg as any;
-    
-    // Logging for debugging reasoning blocks
-    if (msg.role === 'assistant') {
-      try {
-        console.log(`[ChatInterface] JSON: ${JSON.stringify({ id: msg.id, parts: msgAny.parts })}`);
-      } catch (e) {
-        // ignore
-      }
-    }
 
     if (msgAny.parts && Array.isArray(msgAny.parts)) {
       return msgAny.parts.map((p: any, i: number) => {
@@ -162,7 +174,35 @@ const ChatInterface = ({
             {messages.map((msg, i) => (
               <div key={msg.id || i} className="flex flex-col gap-4">
                 
-                {msg.role === 'data' ? (
+                {msg.role === 'data' && (msg.content as string).startsWith('EVALUGENCE_ERROR:') ? (
+                  <div className="self-start flex gap-4 w-full max-w-[95%] md:max-w-[85%] group">
+                    <div className="hidden md:flex w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 items-center justify-center shrink-0 shadow-sm mt-0.5">
+                      <span className="text-red-500 font-bold text-lg">!</span>
+                    </div>
+                    <div className="flex-1 flex flex-col gap-0 max-w-full">
+                      <div className="text-red-600 dark:text-red-400 text-[14px] md:text-[15px] leading-relaxed bg-red-50 dark:bg-red-900/10 p-3.5 md:p-4 rounded-2xl rounded-tl-sm border border-red-100 dark:border-red-900/30 w-fit max-w-full">
+                        <div className="flex items-start justify-between gap-4 mb-1">
+                          <span className="font-semibold">Error communicating with API:</span>
+                          <div className="group/tooltip relative z-[9999]">
+                            <button className="text-red-400 hover:text-red-600 dark:text-red-500/70 dark:hover:text-red-400 transition-colors cursor-help mt-0.5">
+                              <Info className="w-[18px] h-[18px]" />
+                            </button>
+                            <div className="absolute top-1/2 -translate-y-1/2 right-full mr-3 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-[13px] rounded-xl shadow-2xl p-4 opacity-0 group-hover/tooltip:opacity-100 group-hover/tooltip:visible invisible transition-all z-[10000]">
+                              <strong className="block mb-2 text-gray-900 dark:text-gray-100 text-sm">Possible Reasons:</strong>
+                              <ul className="list-disc pl-4 flex flex-col gap-1.5 marker:text-gray-400">
+                                <li>You exceeded your API Rate Limits (Requests per minute).</li>
+                                <li>You ran out of API usage Quota for this specific model.</li>
+                                <li>Your API Key is invalid or expired.</li>
+                                <li>The model provider's servers are down.</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                        {(msg.content as string).replace('EVALUGENCE_ERROR:', '')}
+                      </div>
+                    </div>
+                  </div>
+                ) : msg.role === 'data' ? (
                   <div className="flex justify-center w-full my-2">
                     <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 px-4 py-2 rounded-xl text-xs font-medium text-center max-w-lg">
                       {msg.content as string}
@@ -243,45 +283,25 @@ const ChatInterface = ({
               </div>
             ))}
             
-            {error && (
-              <div className="self-start flex gap-4 w-full max-w-[95%] md:max-w-[85%] group">
-                <div className="hidden md:flex w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 items-center justify-center shrink-0 shadow-sm mt-1">
-                  <span className="text-red-500 font-bold text-lg">!</span>
-                </div>
-                <div className="flex-1 flex flex-col gap-3 pt-1">
-                  <div className="text-red-600 dark:text-red-400 text-[15px] leading-relaxed bg-red-50 dark:bg-red-900/10 p-4 rounded-2xl rounded-tl-sm border border-red-100 dark:border-red-900/30 relative pr-10">
-                    <span className="font-semibold block mb-1">Error communicating with API:</span>
-                    {error.message}
-                    
-                    <div className="group/tooltip absolute top-4 right-4 z-[9999]">
-                      <button className="text-red-400 hover:text-red-600 dark:text-red-500/70 dark:hover:text-red-400 transition-colors cursor-help">
-                        <Info className="w-[18px] h-[18px]" />
-                      </button>
-                      <div className="absolute top-1/2 -translate-y-1/2 right-full mr-3 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-[13px] rounded-xl shadow-2xl p-4 opacity-0 group-hover/tooltip:opacity-100 group-hover/tooltip:visible invisible transition-all z-[10000]">
-                        <strong className="block mb-2 text-gray-900 dark:text-gray-100 text-sm">Possible Reasons:</strong>
-                        <ul className="list-disc pl-4 flex flex-col gap-1.5 marker:text-gray-400">
-                          <li>You exceeded your API Rate Limits (Requests per minute).</li>
-                          <li>You ran out of API usage Quota for this specific model.</li>
-                          <li>Your API Key is invalid or expired.</li>
-                          <li>The model provider's servers are down.</li>
-                        </ul>
-                      </div>
-                    </div>
+            {isLoading && !error && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
+              <div className="self-start flex flex-col gap-2 w-full max-w-[95%] md:max-w-[85%] group">
+                <div className="flex gap-4">
+                  <div className="hidden md:flex w-8 h-8 rounded-full bg-white border border-gray-200 items-center justify-center shrink-0 shadow-sm mt-0.5 p-1">
+                    {providerLogo && <img src={providerLogo} alt={modelName} className="w-4 h-4 object-contain" />}
+                  </div>
+                  <div className="flex items-center gap-1.5 h-8 mt-0.5 ml-1">
+                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                    <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: '300ms' }}></span>
                   </div>
                 </div>
-              </div>
-            )}
-            
-            {isLoading && !error && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
-              <div className="self-start flex gap-4 w-full max-w-[95%] md:max-w-[85%] group">
-                <div className="hidden md:flex w-8 h-8 rounded-full bg-white border border-gray-200 items-center justify-center shrink-0 shadow-sm mt-0.5 p-1">
-                  {providerLogo && <img src={providerLogo} alt={modelName} className="w-4 h-4 object-contain" />}
-                </div>
-                <div className="flex items-center gap-1.5 h-8 mt-0.5 ml-1">
-                  <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                  <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                  <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                </div>
+                {waitState > 0 && (
+                  <div className="ml-0 md:ml-12 text-xs text-gray-500 dark:text-gray-400 italic">
+                    {waitState === 1 
+                      ? "This model is taking longer than usual. The provider might be experiencing high traffic or a cold start."
+                      : "Still no response. The provider's API might be down or heavily congested. Consider trying another model."}
+                  </div>
+                )}
               </div>
             )}
             

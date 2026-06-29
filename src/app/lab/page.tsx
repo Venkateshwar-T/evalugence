@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import MetricsSideMenu from "@/components/workspace/MetricsSideMenu";
 import ChatInterface from "@/components/workspace/ChatInterface";
 import ChatHeader from "@/components/workspace/ChatHeader";
@@ -44,6 +44,7 @@ function LabContent() {
   const [isCompareMinimized, setIsCompareMinimized] = useState(false);
   const isInitialMountMode = useRef(true);
   const [isMounted, setIsMounted] = useState(false);
+  const [pendingModelSwitch, setPendingModelSwitch] = useState<{name: string, logo: string, id: string} | null>(null);
   
   const { config: testModelConfig } = useModelConfig(testModel.name === 'Select Model' ? 'global' : testModel.name);
 
@@ -123,23 +124,36 @@ function LabContent() {
 
   const previousModelRef = useRef<string | null>(null);
 
+  const applyModelSelection = async (name: string, logo: string, id: string) => {
+    setTestModel({ name, logo, id });
+
+    // --- METADATA FETCH ---
+    const apiKey = savedProviders[id]?.apiKey;
+    if (!apiKey) {
+      return;
+    }
+    try {
+      const res = await fetch('/api/metadata', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ providerId: id, apiKey, modelName: name })
+      });
+      const result = await res.json();
+      
+      if (result.success && result.metadata) {
+        const modelData = result.metadata;
+        const metaCache = JSON.parse(localStorage.getItem('evalugence_model_metadata') || '{}');
+        metaCache[name] = modelData;
+        localStorage.setItem('evalugence_model_metadata', JSON.stringify(metaCache));
+      }
+    } catch (e) {
+      // Silently fail metadata fetch
+    }
+  };
+
   useEffect(() => {
     if (testModel.id) {
       localStorage.setItem('evalugence_test_model', JSON.stringify(testModel));
-      
-      if (previousModelRef.current && previousModelRef.current !== testModel.name) {
-        setTestMessages((prev: any) => {
-          if (prev.length === 0) return prev;
-          return [
-            ...prev,
-            {
-              id: Date.now().toString(),
-              role: 'data',
-              content: `Model switched from ${previousModelRef.current} to ${testModel.name}. No previous memory will be retained from here on.`
-            }
-          ];
-        });
-      }
       previousModelRef.current = testModel.name;
     }
   }, [testModel]);
@@ -182,6 +196,15 @@ function LabContent() {
 
   const [compareStopSignal, setCompareStopSignal] = useState(0);
   const [isCompareGenerating, setIsCompareGenerating] = useState(false);
+
+  useEffect(() => {
+    if (error) {
+      setTestMessages((prev: any) => [
+        ...prev,
+        { id: Date.now().toString(), role: 'data', content: `EVALUGENCE_ERROR:${error.message}` }
+      ]);
+    }
+  }, [error, setTestMessages]);
 
   useEffect(() => {
     const lastMsg = testMessages[testMessages.length - 1];
@@ -713,33 +736,12 @@ function LabContent() {
       <SelectModelModal 
         isOpen={isSelectModelOpen} 
         onClose={() => setIsSelectModelOpen(false)}
-        onSelectModel={async (name, logo, id) => {
-          setTestModel({ name, logo, id });
-
-          // --- METADATA FETCH ---
-          const apiKey = savedProviders[id]?.apiKey;
-          if (!apiKey) {
-            console.log(`[Metadata Check] No API key for ${id}`);
-            return;
-          }
-          try {
-            const res = await fetch('/api/metadata', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ providerId: id, apiKey, modelName: name })
-            });
-            const result = await res.json();
-            
-            if (result.success && result.metadata) {
-              const modelData = result.metadata;
-
-              // Save the full metadata
-              const metaCache = JSON.parse(localStorage.getItem('evalugence_model_metadata') || '{}');
-              metaCache[name] = modelData;
-              localStorage.setItem('evalugence_model_metadata', JSON.stringify(metaCache));
-            }
-          } catch (e) {
-            console.error('[Metadata Check] Error fetching:', e);
+        onSelectModel={(name, logo, id) => {
+          if (testMessages.length > 0) {
+            setPendingModelSwitch({ name, logo, id });
+            setIsSelectModelOpen(false);
+          } else {
+            applyModelSelection(name, logo, id);
           }
         }}
         selectedModelName={testModel.name}
@@ -749,6 +751,54 @@ function LabContent() {
         onClose={() => setIsGlobalConfigOpen(false)} 
         modelName="global" 
       />
+
+      <AnimatePresence>
+        {pendingModelSwitch && (
+          <div className="fixed inset-0 z-[100000] flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setPendingModelSwitch(null)}
+              className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="relative w-[90%] max-w-sm bg-white dark:bg-[#111] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 flex flex-col gap-6"
+            >
+              <div className="flex flex-col gap-2 text-center">
+                <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">Start New Chat?</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                  Switching to <span className="font-semibold text-gray-700 dark:text-gray-300">{pendingModelSwitch.name}</span> will clear the current chat and start a new one. Do you want to proceed?
+                </p>
+              </div>
+              <div className="flex gap-3 mt-2">
+                <button
+                  onClick={() => setPendingModelSwitch(null)}
+                  className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (pendingModelSwitch) {
+                      setTestMessages([]);
+                      sessionStorage.removeItem('evalugence_test_messages');
+                      applyModelSelection(pendingModelSwitch.name, pendingModelSwitch.logo, pendingModelSwitch.id);
+                      setPendingModelSwitch(null);
+                    }
+                  }}
+                  className="flex-1 py-2.5 rounded-xl bg-black dark:bg-white text-white dark:text-black text-sm font-semibold hover:scale-[1.02] active:scale-[0.98] transition-all"
+                >
+                  Confirm
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

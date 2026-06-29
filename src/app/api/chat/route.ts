@@ -95,11 +95,18 @@ export async function POST(req: Request) {
     const config = payload.config || dataObj.config || headerConfig;
     let systemPrompt = config.systemPrompt || payload.system || dataObj.system || '';
 
+    // Handle session memory setting
+    const useMemory = config.memory !== false;
+    let finalMessages = coreMessages;
+    if (!useMemory && coreMessages.length > 0) {
+      finalMessages = [coreMessages[coreMessages.length - 1]];
+    }
+
     // No default system prompt is injected anymore
 
     const streamOptions: any = {
       model,
-      messages: coreMessages,
+      messages: finalMessages,
       system: systemPrompt
     };
 

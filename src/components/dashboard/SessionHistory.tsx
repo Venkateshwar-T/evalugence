@@ -59,16 +59,18 @@ export default function SessionHistory() {
                 </div>
               </div>
 
-              <button 
-                onClick={(e) => { 
-                  e.stopPropagation(); 
-                  handleDelete(session.id); 
-                }}
-                className="p-1.5 md:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors shrink-0"
-                title="Delete Session"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <div className="relative group/delete">
+                <button 
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    handleDelete(session.id); 
+                  }}
+                  className="p-1.5 md:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors shrink-0"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+                <div className="absolute top-full mt-2 right-0 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-xl opacity-0 group-hover/delete:opacity-100 invisible group-hover/delete:visible transition-all whitespace-nowrap shadow-2xl z-50 pointer-events-none">Delete Session</div>
+              </div>
             </div>
 
             {/* Body: Preview Text */}
